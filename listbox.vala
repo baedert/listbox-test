@@ -18,12 +18,6 @@
 
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item);// XXX Pass old widget (?)
 
-// Util crap {{{
-inline int max (int a, int b) {
-  return a > b ? a : b;
-}
-// }}}
-
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<GLib.Object> model  = new Gee.ArrayList<GLib.Object> ();
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -34,8 +28,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.Adjustment vadjustment {
     set {
       this._vadjustment = value;
-      this._vadjustment.upper = 500;
-      this._vadjustment.lower = 0;
+      configure_adjustment ();
       this._vadjustment.value_changed.connect (vadjustment_changed_cb);
     }
     get {
@@ -131,12 +124,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     child_allocation.x = 0;
     child_allocation.width = allocation.width;
     foreach (Gtk.Widget child in this.widgets) {
-      assert (child.visible);
       child.get_preferred_height (out imp, out child_allocation.height);
       child_allocation.y = y;
       child.size_allocate (child_allocation);
       y += child_allocation.height;
     }
+
+    configure_adjustment ();
 
     if (this.get_realized ()) {
       this.get_window ().move_resize (allocation.x,
@@ -144,10 +138,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                       allocation.width,
                                       allocation.height);
 
-      int new_y = allocation.y + (int) this._vadjustment.value;
-      //int new_height = max (allocation.height + (int)(this._vadjustment.value * 2),
-                            //allocation.height);
-      //message ("New height: %d (allocated; %d)", new_height, allocation.height);
+      int new_y = allocation.y - (int) this._vadjustment.value;
       int h = 0;
       foreach (var w in widgets) {
         h += w.get_allocated_height ();
@@ -159,8 +150,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                    h);
                                    //new_height);
     }
-
-
   }
 
   public override void realize () {
@@ -211,10 +200,28 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
   /* }}} */
 
+  private void configure_adjustment () {
+    int h = 0;
+    foreach (var w in widgets) {
+      h += w.get_allocated_height ();
+    }
+
+    // XXX ???
+    if (h == 0) h = 1;
+
+    this._vadjustment.configure (this._vadjustment.value, // value,
+                                 0, // lower
+                                 h, // Upper
+                                 0, //step increment
+                                 0, // page increment
+                                 this.get_allocated_height ()); // page_size
+  }
+
   private void vadjustment_changed_cb () {
     double new_value = this._vadjustment.value;
     this.queue_resize ();
   }
+
 }
 
 
@@ -239,7 +246,6 @@ void main (string[] args) {
   // Add widget button {{{
   var awb = new Gtk.Button.with_label ("Add widget");
   awb.clicked.connect (() => {
-    message ("Button clicked");
     l.add_item (new ModelItem ());
     //var b = new Gtk.Button.with_label ("HEY HEY");
     //b.show_all ();
