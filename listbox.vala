@@ -1,11 +1,12 @@
 
 /*
-  - Make the container itself work XXX
+  - Make the container itself work
     - --- Adding and removing widgets at runtime shouold work just fine.
     - --- Adding them before showing the container too.
   - Use a model
     - Model changes -> widget changes
     - First, show widgets for ALL the items in the model, like GtkListBox
+    - Port to GLib.ListModel
   Remove out-of-sight widgets
     - implement Gtk.Scrollable
     - On Scroll
@@ -19,9 +20,10 @@
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item);// XXX Pass old widget (?)
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
-  private Gee.ArrayList<GLib.Object> model  = new Gee.ArrayList<GLib.Object> ();
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
   private Gdk.Window bin_window;
+  private GLib.ListModel model;
+  public WidgetFillFunc? fill_func;
 
   /* GtkScrollable properties  {{{ */
   private Gtk.Adjustment _vadjustment;
@@ -48,29 +50,64 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.ScrollablePolicy vscroll_policy { get; set; }
   /* }}} */
 
+  private void debug_print_model () {
+    assert (model != null);
+    message ("MODEL:");
+    for (int i = 0; i < this.model.get_n_items (); i ++) {
+      message ("%d: %p", i, this.model.get_item (i));
+    }
+    message ("----------");
+  }
 
-  public WidgetFillFunc? fill_func;
-
-  public ModelListBox () {
-    this.set_has_window (true);
+  private void debug_print_widgets () {
+    message ("WIDGETS:");
+    for (int i = 0; i < this.widgets.size; i ++) {
+      message ("%d: %p", i, this.widgets.get (i));
+    }
+    message ("----------");
   }
 
 
-  public void add_item (GLib.Object item) {
-    model.add (item);
-    Gtk.Widget new_widget = this.fill_func (item);
-    this.add_child_internal (new_widget);
-    this.queue_resize ();
+  public void set_model (GLib.ListModel model) {
+    this.model = model;
+    // Add already existing widgets
+    for (int i = 0; i < model.get_n_items (); i ++) {
+      var w = fill_func (model.get_object (i));
+      insert_child_internal (w, i);
+    }
+
+    this.debug_print_widgets ();
+    this.debug_print_model ();
+
+    model.items_changed.connect ((position, removed, added) => {
+      int index = (int)position - 1;
+      //message ("items changed! index: %d, removed: %u, added: %u", index, removed, added);
+
+      var item = model.get_object (position);
+      for (int i = 0; i < removed; i ++) {
+        widgets.remove_at ((int)position);
+      }
+
+      for (int i = 0; i < added; i ++) {
+        var widget = fill_func (item);
+        insert_child_internal (widget, index + 1);
+      }
+
+      this.debug_print_widgets ();
+
+      this.debug_print_model ();
+      this.queue_resize ();
+    });
+
   }
 
-  private void add_child_internal (Gtk.Widget widget) {
+  private void insert_child_internal (Gtk.Widget widget, int index) {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
-    //widget.set_parent_window (this.get_window ());
-    this.widgets.add (widget);
+    this.widgets.insert (index, widget);
   }
 
-  /* GtkContainer API */
+  /* GtkContainer API {{{ */
   public override void add (Gtk.Widget child) { assert (false); }
 
   public override void forall_internal (bool         include_internals,
@@ -86,9 +123,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     widgets.remove (w);
     w.unparent ();
   }
+
   public override GLib.Type child_type () {
     return typeof (Gtk.Widget);
   }
+  /* }}} */
 
   /* GtkWidget API  {{{ */
   public override bool draw (Cairo.Context ct) {
@@ -224,10 +263,27 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 }
 
-
+// Model stuff {{{
 class ModelItem : GLib.Object {
-  string name;
+  public string name;
+  public ModelItem (string s) { name = s; }
 }
+
+class ModelWidget : Gtk.Box {
+  private Gtk.Label name_label = new Gtk.Label ("");
+  public  Gtk.Button remove_button = new Gtk.Button.from_icon_name ("list-remove-symbolic");
+  public ModelWidget () {
+    name_label.hexpand = true;
+    this.add (name_label);
+    this.add (remove_button);
+  }
+
+  public void set_name (string name) {
+    this.name_label.label = name;
+  }
+}
+
+// }}}
 
 void main (string[] args) {
   Gtk.init (ref args);
@@ -235,21 +291,31 @@ void main (string[] args) {
   var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
   var l = new ModelListBox ();
   l.vexpand = true;
+
+
+  var store = new GLib.ListStore (typeof (ModelItem));
+
+
   l.fill_func = (item) => {
-    var b = new Gtk.Button.with_label ("From fill_func");
-    b.clicked.connect (() => { message ("Clicked on filll_func button"); });
+    var b = new ModelWidget ();
+    b.set_name (((ModelItem)item).name);
+    b.remove_button.clicked.connect (() => {
+      //store.remove (index);
+      message ("TODO: Remove");
+    });
     b.show_all ();
     return b;
   };
+
+  store.append (new ModelItem ("a"));
+
+  l.set_model (store);
 
 
   // Add widget button {{{
   var awb = new Gtk.Button.with_label ("Add widget");
   awb.clicked.connect (() => {
-    l.add_item (new ModelItem ());
-    //var b = new Gtk.Button.with_label ("HEY HEY");
-    //b.show_all ();
-    //l.add (b);
+    store.append (new ModelItem ("one more"));
   });
   box.add (awb);
 
