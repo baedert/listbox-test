@@ -12,7 +12,6 @@
     - On Scroll
     - On Resize
   - Reuse widgets
-  - Use GLib.ListModel
   - Fix destruction (see XXX in forall)
  */
 
@@ -256,9 +255,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                  this.get_allocated_height ()); // page_size
   }
 
+
   private void vadjustment_changed_cb () {
     double new_value = this._vadjustment.value;
-    this.queue_resize ();
+    int bin_x;
+    int bin_y;
+    this.bin_window.get_geometry (out bin_x, out bin_y, null, null);
+
+    for (int widget_index = 0; widget_index < /*this.widgets.size*/1; widget_index ++) {
+      Gtk.Allocation alloc;
+      Gtk.Widget w = this.widgets.get (widget_index);
+      w.get_allocation (out alloc);
+      message ("y: %d, bin_y: %d", alloc.y, bin_y);
+    }
+
+    this.queue_resize (); // XXX needed?!
   }
 
 }
@@ -307,7 +318,8 @@ void main (string[] args) {
     return b;
   };
 
-  store.append (new ModelItem ("a"));
+  for (int i = 0; i < 20; i ++)
+    store.append (new ModelItem ("a"));
 
   l.set_model (store);
 
