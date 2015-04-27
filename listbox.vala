@@ -10,6 +10,7 @@
   Remove out-of-sight widgets
     - implement Gtk.Scrollable
     - On Scroll
+    - Don't add too many widgets when setting the model
     - On Resize
   - Reuse widgets
  */
@@ -90,6 +91,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // Add already existing widgets
     for (int i = 0; i < model.get_n_items (); i ++) {
       var w = fill_func (model.get_object (i), null);
+
       insert_child_internal (w, i);
     }
 
@@ -173,7 +175,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     ct.fill ();
 
     if (Gtk.cairo_should_draw_window (ct, this.bin_window)) {
-      ct.set_source_rgba (1.0, 0.0, 0.0, 1.0);
+      ct.set_source_rgba (1.0, 0.0, 0.0, 0.2);
       ct.rectangle (-100, -100, 10000, 10000);
       ct.fill ();
       //message ("    drawing window");
@@ -213,6 +215,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       foreach (var w in widgets) {
         h += w.get_allocated_height ();
       }
+
+
+      // XXX Resizing the window/widget
+      //if (this._vadjustment.value >=
+          //this._vadjustment.upper - this._vadjustment.page_size) {
+        //new_y = allocation.y - (h - allocation.height);
+        //this.bin_y_diff = new_y - (int)this._vadjustment.value;
+        //this.bin_y_diff = allocation.height - h;
+      //}
 
       this.bin_window.move_resize (allocation.x,
                                    new_y,
@@ -295,10 +306,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
 
   private void vadjustment_changed_cb () {
+    message ("_changed_cb");
     int bin_y;
+    int bin_height;
     Gtk.Allocation widget_alloc;
     this.get_allocation (out widget_alloc);
-    this.bin_window.get_geometry (null, out bin_y, null, null);
+    this.bin_window.get_geometry (null, out bin_y, null, out bin_height);
 
     if (-this._vadjustment.value + this.bin_y_diff > 0) {
       //message ("Adding new widget with index %d", model_from - 1);
@@ -333,10 +346,37 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         }
         else break;
       }
-
     }
 
+
+    // Same at the bottom
+    if (-this._vadjustment.value + this.bin_y_diff + bin_height < widget_alloc.height) {
+      // Add Widgets
+    } else {
+      // remove widgets
+      for (int i = this.widgets.size - 1; i >= 0; i --) {
+        Gtk.Allocation alloc;
+        var w = this.widgets.get (i);
+        w.get_allocation (out alloc);
+
+
+        // XXX WRONG
+        if (alloc.y > _vadjustment.value - bin_y + alloc.height) {
+          message ("Remove bottom widget");
+          this.remove_child_internal (w);
+          model_to --;
+        } else
+          break;
+      }
+    }
+
+
+
     this.queue_resize (); // XXX needed?!
+
+
+    //assert (bin_height >= this.get_allocated_height ());
+    assert (this.widgets.size + this.old_widgets.size == model.get_n_items ());
   }
 
 }
@@ -354,6 +394,7 @@ class ModelWidget : Gtk.Box {
     name_label.hexpand = true;
     this.add (name_label);
     this.add (remove_button);
+    this.opacity = 0.3;
   }
 
   public void set_name (string name) {
