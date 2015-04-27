@@ -29,8 +29,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.Adjustment vadjustment {
     set {
       this._vadjustment = value;
-      configure_adjustment ();
-      this._vadjustment.value_changed.connect (vadjustment_changed_cb);
+      if (this._vadjustment != null) {
+        configure_adjustment ();
+        this._vadjustment.value_changed.connect (vadjustment_changed_cb);
+      }
     }
     get {
       return this._vadjustment;
@@ -50,20 +52,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   /* }}} */
 
   private void debug_print_model () {
-    assert (model != null);
-    message ("MODEL:");
-    for (int i = 0; i < this.model.get_n_items (); i ++) {
-      message ("%d: %p", i, this.model.get_item (i));
-    }
-    message ("----------");
+    //assert (model != null);
+    //message ("MODEL:");
+    //for (int i = 0; i < this.model.get_n_items (); i ++) {
+      //message ("%d: %p", i, this.model.get_item (i));
+    //}
+    //message ("----------");
   }
 
   private void debug_print_widgets () {
-    message ("WIDGETS:");
-    for (int i = 0; i < this.widgets.size; i ++) {
-      message ("%d: %p", i, this.widgets.get (i));
-    }
-    message ("----------");
+    //message ("WIDGETS:");
+    //for (int i = 0; i < this.widgets.size; i ++) {
+      //message ("%d: %p", i, this.widgets.get (i));
+    //}
+    //message ("----------");
   }
 
 
@@ -169,7 +171,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       y += child_allocation.height;
     }
 
-    configure_adjustment ();
+    //configure_adjustment ();
 
     if (this.get_realized ()) {
       this.get_window ().move_resize (allocation.x,
@@ -189,6 +191,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                    h);
                                    //new_height);
     }
+
+    configure_adjustment ();
+    vadjustment_changed_cb ();
+
   }
 
   public override void realize () {
@@ -259,9 +265,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void vadjustment_changed_cb () {
     double new_value = this._vadjustment.value;
-    int bin_x;
     int bin_y;
-    this.bin_window.get_geometry (out bin_x, out bin_y, null, null);
+    this.bin_window.get_geometry (null, out bin_y, null, null);
 
     for (int widget_index = 0; widget_index < /*this.widgets.size*/1; widget_index ++) {
       Gtk.Allocation alloc;
@@ -300,6 +305,7 @@ class ModelWidget : Gtk.Box {
 void main (string[] args) {
   Gtk.init (ref args);
   var w = new Gtk.Window ();
+  w.delete_event.connect (() => {Gtk.main_quit (); return false;});
   var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
   var l = new ModelListBox ();
   l.vexpand = true;
