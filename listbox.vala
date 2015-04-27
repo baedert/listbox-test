@@ -270,7 +270,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
   private void configure_adjustment () {
-
     int average_widget_height = 0;
     foreach (var w in this.widgets) {
       average_widget_height += w.get_allocated_height ();
@@ -278,8 +277,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     average_widget_height /= this.widgets.size;
 
     int estimated_list_height = (int)this.model.get_n_items () * average_widget_height;
-
-    //message ("Estimated list height: %d", estimated_list_height);
 
     this._vadjustment.configure (this._vadjustment.value, // value,
                                  0, // lower
@@ -290,28 +287,14 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                  this.get_allocated_height ()); // page_size
   }
 
-  private int get_average_widget_height () {
-    int x = 0;
-    foreach (var w in widgets)
-      x += w.get_allocated_height ();
-
-
-    x /= this.widgets.size;
-    return x;
-  }
-
-  int n_call = 0;
   private void vadjustment_changed_cb () {
-    double new_value = this._vadjustment.value;
     int bin_y;
-    int bin_height;
     Gtk.Allocation widget_alloc;
     this.get_allocation (out widget_alloc);
-    this.bin_window.get_geometry (null, out bin_y, null, out bin_height);
+    this.bin_window.get_geometry (null, out bin_y, null, null);
 
     if (-this._vadjustment.value + this.bin_y_diff > 0) {
       //message ("Adding new widget with index %d", model_from - 1);
-
       while (-this._vadjustment.value + this.bin_y_diff > 0) {
         var new_widget = fill_func (model.get_object (model_from - 1),
                                     get_old_widget ());
@@ -347,7 +330,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
 
     this.queue_resize (); // XXX needed?!
-    n_call ++;
   }
 
 }
