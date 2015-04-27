@@ -24,6 +24,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public WidgetFillFunc? fill_func;
   private int bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 
+  private int model_from = 0;
+  private int model_to   = 0;
+
   /* GtkScrollable properties  {{{ */
   private Gtk.Adjustment _vadjustment;
   public Gtk.Adjustment vadjustment {
@@ -76,6 +79,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       var w = fill_func (model.get_object (i));
       insert_child_internal (w, i);
     }
+
+    // XXX Remove this
+    this.model_from = 0;
+    this.model_to = (int)model.get_n_items () - 1;
 
     this.debug_print_widgets ();
     this.debug_print_model ();
@@ -240,6 +247,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
   /* }}} */
 
+
+
   private void configure_adjustment () {
 
     int average_widget_height = 0;
@@ -261,7 +270,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                  this.get_allocated_height ()); // page_size
   }
 
+  private int get_average_widget_height () {
+    int x = 0;
+    foreach (var w in widgets)
+      x += w.get_allocated_height ();
 
+
+    x /= this.widgets.size;
+    return x;
+  }
+
+  int n_call = 0;
   private void vadjustment_changed_cb () {
     double new_value = this._vadjustment.value;
     int bin_y;
@@ -270,19 +289,41 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.get_allocation (out widget_alloc);
     this.bin_window.get_geometry (null, out bin_y, null, out bin_height);
 
-    for (int widget_index = 0; widget_index < /*this.widgets.size*/1; widget_index ++) {
-      Gtk.Allocation alloc;
-      Gtk.Widget w = this.widgets.get (widget_index);
-      w.get_allocation (out alloc);
-      if (bin_y + alloc.y + alloc.height < 0) {
-        // Remove widget, resize and move bin_window
-        widgets.remove (w);
-        this.bin_y_diff += alloc.height;
-        widget_index --;
+    if (-this._vadjustment.value + this.bin_y_diff > 0) {
+      //message ("Adding new widget with index %d", model_from - 1);
+      var new_widget = fill_func (model.get_object (model_from - 1));
+      model_from --;
+      //message ("%d: Adding widget, new model_from: %d", n_call, model_from);
+      this.insert_child_internal (new_widget, 0);
+      Gtk.Allocation a;
+      new_widget.get_allocation (out a);
+      int nat, min;
+      new_widget.get_preferred_height_for_width (this.get_allocated_width (),
+                                                 out min,
+                                                 out nat);
+      this.bin_y_diff -= min;
+
+      assert (this.widgets.size == (model_to - model_from + 1));
+    } else {
+      for (int widget_index = 0; widget_index < /*this.widgets.size*/1; widget_index ++) {
+        Gtk.Allocation alloc;
+        Gtk.Widget w = this.widgets.get (widget_index);
+        w.get_allocation (out alloc);
+        if (bin_y + alloc.y + alloc.height < 0) {
+          // Remove widget, resize and move bin_window
+          widgets.remove (w);
+          this.bin_y_diff += alloc.height;
+          //widget_index --;
+          model_from ++;
+          //message ("%d: Removing widget, new model_from: %d", n_call, model_from);
+        }
+        else break;
       }
+
     }
 
     this.queue_resize (); // XXX needed?!
+    n_call ++;
   }
 
 }
@@ -333,7 +374,7 @@ void main (string[] args) {
   };
 
   for (int i = 0; i < 20; i ++)
-    store.append (new ModelItem ("a"));
+    store.append (new ModelItem ("NUMBER " + i.to_string ()));
 
   l.set_model (store);
 
