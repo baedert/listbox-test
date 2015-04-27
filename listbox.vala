@@ -15,10 +15,12 @@
  */
 
 
-delegate Gtk.Widget WidgetFillFunc (GLib.Object item);// XXX Pass old widget (?)
+delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
+                                    Gtk.Widget? old_widget);
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
+  private Gee.ArrayList<Gtk.Widget> old_widgets = new Gee.ArrayList<Gtk.Widget> ();
   private Gdk.Window bin_window;
   private GLib.ListModel model;
   public WidgetFillFunc? fill_func;
@@ -71,12 +73,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     //message ("----------");
   }
 
+  private Gtk.Widget? get_old_widget () {
+    if (this.old_widgets.size == 0)
+      return null;
+
+    var w = this.old_widgets.get (0);
+    this.old_widgets.remove (w);
+    return w;
+  }
 
   public void set_model (GLib.ListModel model) {
     this.model = model;
     // Add already existing widgets
     for (int i = 0; i < model.get_n_items (); i ++) {
-      var w = fill_func (model.get_object (i));
+      var w = fill_func (model.get_object (i), null);
       insert_child_internal (w, i);
     }
 
@@ -93,11 +103,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
       var item = model.get_object (position);
       for (int i = 0; i < removed; i ++) {
+        // XXX cache these
         widgets.remove_at ((int)position);
       }
 
       for (int i = 0; i < added; i ++) {
-        var widget = fill_func (item);
+        var widget = fill_func (item, get_old_widget ());
         insert_child_internal (widget, index + 1);
       }
 
@@ -113,6 +124,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
     this.widgets.insert (index, widget);
+  }
+
+  private void remove_child_internal (Gtk.Widget widget) {
+    assert (widget.parent == this);
+    assert (widget.get_parent_window () == this.bin_window);
+
+    this.widgets.remove (widget);
+    widget.unparent ();
+    this.old_widgets.add (widget);
   }
 
   /* GtkContainer API {{{ */
@@ -291,27 +311,31 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     if (-this._vadjustment.value + this.bin_y_diff > 0) {
       //message ("Adding new widget with index %d", model_from - 1);
-      var new_widget = fill_func (model.get_object (model_from - 1));
-      model_from --;
-      //message ("%d: Adding widget, new model_from: %d", n_call, model_from);
-      this.insert_child_internal (new_widget, 0);
-      Gtk.Allocation a;
-      new_widget.get_allocation (out a);
-      int nat, min;
-      new_widget.get_preferred_height_for_width (this.get_allocated_width (),
-                                                 out min,
-                                                 out nat);
-      this.bin_y_diff -= min;
+
+      while (-this._vadjustment.value + this.bin_y_diff > 0) {
+        var new_widget = fill_func (model.get_object (model_from - 1),
+                                    get_old_widget ());
+        model_from --;
+        //message ("%d: Adding widget, new model_from: %d", n_call, model_from);
+        this.insert_child_internal (new_widget, 0);
+        Gtk.Allocation a;
+        new_widget.get_allocation (out a);
+        int nat, min;
+        new_widget.get_preferred_height_for_width (this.get_allocated_width (),
+                                                   out min,
+                                                   out nat);
+        this.bin_y_diff -= min;
+      }
 
       assert (this.widgets.size == (model_to - model_from + 1));
     } else {
-      for (int widget_index = 0; widget_index < /*this.widgets.size*/1; widget_index ++) {
+      for (int widget_index = 0; widget_index < this.widgets.size; widget_index ++) {
         Gtk.Allocation alloc;
         Gtk.Widget w = this.widgets.get (widget_index);
         w.get_allocation (out alloc);
         if (bin_y + alloc.y + alloc.height < 0) {
           // Remove widget, resize and move bin_window
-          widgets.remove (w);
+          this.remove_child_internal (w);
           this.bin_y_diff += alloc.height;
           //widget_index --;
           model_from ++;
@@ -362,8 +386,11 @@ void main (string[] args) {
   var store = new GLib.ListStore (typeof (ModelItem));
 
 
-  l.fill_func = (item) => {
-    var b = new ModelWidget ();
+  l.fill_func = (item, old) => {
+    ModelWidget b = (ModelWidget)old;
+    if (old == null)
+      b = new ModelWidget ();
+
     b.set_name (((ModelItem)item).name);
     b.remove_button.clicked.connect (() => {
       //store.remove (index);
