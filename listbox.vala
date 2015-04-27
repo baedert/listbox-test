@@ -18,6 +18,9 @@
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
 
+
+Gtk.Label n_widget_label;
+
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
   private Gee.ArrayList<Gtk.Widget> old_widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -124,6 +127,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
     this.widgets.insert (index, widget);
+    n_widget_label.label = "Widgets: " + this.widgets.size.to_string ()
+                           + " (" + this.old_widgets.size.to_string () + ")";
   }
 
   private void remove_child_internal (Gtk.Widget widget) {
@@ -133,6 +138,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
+    n_widget_label.label = "Widgets: " + this.widgets.size.to_string ()
+                           + " (" + this.old_widgets.size.to_string () + ")";
   }
 
   /* GtkContainer API {{{ */
@@ -366,6 +373,7 @@ void main (string[] args) {
 
 
   var store = new GLib.ListStore (typeof (ModelItem));
+  n_widget_label = new Gtk.Label ("Foobar");
 
 
   l.fill_func = (item, old) => {
@@ -394,6 +402,8 @@ void main (string[] args) {
     store.append (new ModelItem ("one more"));
   });
   box.add (awb);
+
+  box.add (n_widget_label);
 
   // }}}
 
