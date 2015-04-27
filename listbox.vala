@@ -250,18 +250,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     int estimated_list_height = (int)this.model.get_n_items () * average_widget_height;
 
-
-    int h = 0;
-
-    foreach (var w in widgets) {
-      h += w.get_allocated_height ();
-    }
-
-    //message ("Adjustment height: %d", h);
-    message ("Estimated list height: %d", estimated_list_height);
-
-    // XXX ???
-    if (h == 0) h = 1;
+    //message ("Estimated list height: %d", estimated_list_height);
 
     this._vadjustment.configure (this._vadjustment.value, // value,
                                  0, // lower
@@ -289,11 +278,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         // Remove widget, resize and move bin_window
         widgets.remove (w);
         this.bin_y_diff += alloc.height;
-        //bin_window.move_resize (0,
-                                //bin_y + alloc.height,
-                                //this.get_allocated_width (),
-                                //bin_height - alloc.height);
-        //widget_index --;
+        widget_index --;
       }
     }
 
