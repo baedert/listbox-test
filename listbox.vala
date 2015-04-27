@@ -119,8 +119,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   public override void remove (Gtk.Widget w) {
     assert (w.get_parent () == this);
-    widgets.remove (w);
-    w.unparent ();
+    //widgets.remove (w);
+    //w.unparent ();
+    // XXX unref all widgets manually in the destructor
   }
 
   public override GLib.Type child_type () {
