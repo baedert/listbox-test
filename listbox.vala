@@ -306,7 +306,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
 
   private void vadjustment_changed_cb () {
-    message ("_changed_cb");
+    message ("Checking with %d", this.get_allocated_height ());
     int bin_y;
     int bin_height;
     Gtk.Allocation widget_alloc;
@@ -352,7 +352,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // Same at the bottom
     if (-this._vadjustment.value + this.bin_y_diff + bin_height < widget_alloc.height) {
       // Add Widgets
-    } else {
+    } else if (this.get_allocated_height () > 300) {
+      // XXX This gets called before the container has its final size, i.e. the allocated
+      //     height is pretty small and we remove a lot of widgets unnecessarily. What to do?
       // remove widgets
       for (int i = this.widgets.size - 1; i >= 0; i --) {
         Gtk.Allocation alloc;
@@ -361,8 +363,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
         // XXX WRONG
-        if (alloc.y > _vadjustment.value - bin_y + alloc.height) {
-          message ("Remove bottom widget");
+        if (-this._vadjustment.value + this.bin_y_diff + alloc.y > this.get_allocated_height ()) {
+          message ("Remove bottom widget, alloc.y: %d", alloc.y);
           this.remove_child_internal (w);
           model_to --;
         } else
