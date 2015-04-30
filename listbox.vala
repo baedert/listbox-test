@@ -358,8 +358,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     //bin_height = get_bin_height (true);
 
     // Bottom of bin_window hangs into the widget
-    while (bin_y () + bin_height <= widget_alloc.height) {
-           //model_to < (int)model.get_n_items () - 1) {
+    while (bin_y () + bin_height <= widget_alloc.height &&
+           model_to < (int)model.get_n_items () - 1) {
       var new_widget = fill_func (model.get_object (model_to + 1),
                                   get_old_widget ());
       assert (new_widget != null);
@@ -493,7 +493,7 @@ void main (string[] args) {
     return b;
   };
 
-  for (int i = 0; i < 200; i ++)
+  for (int i = 0; i < 20; i ++)
   //for (int i = 0; i < 200000; i ++)
     store.append (new ModelItem ("NUMBER " + i.to_string ()));
 
@@ -518,7 +518,7 @@ void main (string[] args) {
 
   var scb = new Gtk.Button.with_label ("Scroll down");
   scb.clicked.connect (() => {
-    scroller.get_vadjustment ().value ++;
+    scroller.get_vadjustment ().value += 100;
   });
 
   box.pack_end (scb, false, false);
