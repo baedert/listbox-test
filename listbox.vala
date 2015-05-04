@@ -515,8 +515,7 @@ class ModelWidget : Gtk.Box {
     this.name_label.label = name;
   }
   public void set_num (int i) {
-    if (i %2 == 0)
-      this.set_size_request (-1, 100);
+    this.set_size_request (-1, i);
   }
 }
 
