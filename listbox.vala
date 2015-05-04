@@ -164,10 +164,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
   }
 
-  int s_a_c = 0;
   public override void size_allocate (Gtk.Allocation allocation)
   {
-    //stdout.printf ("%d: size_allocate\n", s_a_c ++);
     this.set_allocation (allocation);
     position_children ();
 
@@ -285,25 +283,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return -(int)this._vadjustment.value + this.bin_y_diff;
   }
 
-  int e_c = 0;
   private void ensure_visible_widgets ()
   {
-    // XXX ????
     if (!this.get_mapped ()) return;
-
-
 
     // bin_y_diff is always postivive (use uint?!)
     assert (this.bin_y_diff >= 0);
-
-
-
-    //stdout.printf ("%d: ensure_visible_widgets for value %f\n", e_c ++, this._vadjustment.value);
-    //message ("--------------------------------------");
-    //message ("bin_y: %d", bin_y ());
-    //message ("bin_y_diff: %d", this.bin_y_diff);
-    //message ("New adjustment value: %f, bin_y: %d", this._vadjustment.value, bin_y ());
-
 
     int bin_height;
     Gtk.Allocation widget_alloc;
@@ -320,17 +305,18 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (bin_y () + bin_height < 0 ||
         bin_y () > widget_alloc.height) {
       int estimated_widget_height = estimated_widget_height ();
-      message ("stimated height(%d): %d", this.widgets.size, estimated_widget_height);
+      message ("estimated height(%d): %d", this.widgets.size, estimated_widget_height);
       assert (estimated_widget_height > 0);
       int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
       message ("Top widget: %d",  top_widget_index);
       assert (top_widget_index >= 0);
-      int top_widget_y_diff = (int)this.vadjustment.value -
-                              (top_widget_index * estimated_widget_height);
-      message ("top_widget_y_diff: %d", top_widget_y_diff);
-      assert (top_widget_y_diff >= 0);
+      //int top_widget_y_diff = (int)this.vadjustment.value -
+                              //(top_widget_index * estimated_widget_height);
+      //message ("top_widget_y_diff: %d", top_widget_y_diff);
+      //top_widget_y_diff = 0;
+      //assert (top_widget_y_diff >= 0);
 
-      int new_y_diff = (top_widget_index * estimated_widget_height) - top_widget_y_diff;
+      int new_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
       message ("Final y diff: %d", new_y_diff);
 
       this.bin_y_diff = new_y_diff;
@@ -347,7 +333,7 @@ vadjustment.value:  6593
 
 
 
-      this.model_from = top_widget_index - 1;
+      this.model_from = top_widget_index;// - 1;
       this.model_to  = model_from - 1;
       // Fill the list again
       int cur_height = 0;
@@ -532,15 +518,12 @@ void main (string[] args) {
   l.fill_func = (item, old) => {
     assert (item != null);
 
-    //message ("%d: Fill func for '%s'!", ff_c ++, ((ModelItem)item).name);
-
     ModelWidget b = (ModelWidget)old;
     if (old == null)
       b = new ModelWidget ();
 
     b.set_name (((ModelItem)item).name);
     b.remove_button.clicked.connect (() => {
-      //store.remove (index);
       message ("TODO: Remove");
     });
     b.show_all ();
