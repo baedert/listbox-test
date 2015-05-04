@@ -82,7 +82,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
   private void update_height () {
-    int h = estimated_widget_height () * (int)this.model.get_n_items ();
+    int h = estimated_list_height ();
     height_label.label = "Estimated height: %d".printf (h);
   }
 
@@ -255,25 +255,46 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return average_widget_height;
   }
 
-  private void configure_adjustment ()
+  /* We use the exact height of the shown widgets PLUS the estimated widget height (which we get from the
+   * shown widgets) for all the invisible rows */
+  private int estimated_list_height ()
   {
-    int average_widget_height = 0;
+    int widget_height = estimated_widget_height ();
 
-    if (this.widgets.size > 0) {
-      foreach (var w in this.widgets) {
-        average_widget_height += w.get_allocated_height ();
-      }
-      average_widget_height /= this.widgets.size;
+    int top_widgets    = model_from;
+    int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;
+
+    message ("top_widgets: %d", model_from);
+    message ("bottom_widgets: %d", bottom_widgets);
+
+    assert (top_widgets >= 0);
+    assert (bottom_widgets >= 0);
+
+    int exact_height = 0;
+    foreach (var w in this.widgets) {
+      exact_height += w.get_allocated_height ();
     }
 
-    int estimated_list_height = (int)this.model.get_n_items () * average_widget_height;
+    assert (exact_height >= 0);
+    return exact_height +
+           top_widgets * widget_height +
+           bottom_widgets * widget_height;
+  }
 
-    estimated_list_height = estimated_widget_height () * (int)model.get_n_items ();
+  private void configure_adjustment ()
+  {
+    int list_height = estimated_list_height ();
 
-    this._vadjustment.configure (this._vadjustment.value, // value,
+    message ("new list height: %d", list_height);
+
+    // keep current "viewed" adjustment value
+    int adjustment_inc = (int)this._vadjustment.upper - list_height;
+    adjustment_inc = 0;
+
+    this._vadjustment.configure (this._vadjustment.value - adjustment_inc, // value,
                                  0, // lower
                                  //h, // Upper
-                                 estimated_list_height,
+                                 list_height,
                                  1, //step increment
                                  0, // page increment
                                  this.get_allocated_height ()); // page_size
@@ -558,12 +579,12 @@ void main (string[] args) {
 
   store.append (new ModelItem ("FIRST", 20));
   store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
+  //store.append (new ModelItem ("FIRST", 20));
   store.append (new ModelItem ("FIRST", 20));
   store.append (new ModelItem ("THIRD", 300));
 
