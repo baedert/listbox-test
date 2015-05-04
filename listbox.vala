@@ -15,7 +15,7 @@ delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
 
 
 Gtk.Label n_widget_label;
-Gtk.Label model_label;
+Gtk.Label height_label;
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -80,11 +80,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     ensure_visible_widgets ();
   }
 
+
+  private void update_height () {
+    int h = estimated_widget_height () * (int)this.model.get_n_items ();
+    height_label.label = "Estimated height: %d".printf (h);
+  }
+
   private void insert_child_internal (Gtk.Widget widget, int index)
   {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
     this.widgets.insert (index, widget);
+    n_widget_label.label = "Widgets: %d (%d)"
+      .printf (this.widgets.size, this.old_widgets.size);
+    update_height ();
   }
 
   private void remove_child_internal (Gtk.Widget widget)
@@ -95,6 +104,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
+    n_widget_label.label = "Widgets: %d (%d)"
+      .printf (this.widgets.size, this.old_widgets.size);
+    update_height ();
   }
 
   private void remove_all_widgets ()
@@ -102,6 +114,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     for (int i = this.widgets.size - 1; i >= 0; i --) {
       this.remove_child_internal (this.widgets.get (i));
     }
+    n_widget_label.label = "Widgets: %d (%d)"
+      .printf (this.widgets.size, this.old_widgets.size);
+    update_height ();
   }
 
   /* GtkContainer API {{{ */
@@ -252,6 +267,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
 
     int estimated_list_height = (int)this.model.get_n_items () * average_widget_height;
+
+    estimated_list_height = estimated_widget_height () * (int)model.get_n_items ();
 
     this._vadjustment.configure (this._vadjustment.value, // value,
                                  0, // lower
@@ -516,7 +533,7 @@ void main (string[] args) {
 
   var store = new GLib.ListStore (typeof (ModelItem));
   n_widget_label = new Gtk.Label ("Foobar");
-  model_label = new Gtk.Label ("zomg model");
+  height_label = new Gtk.Label ("zomg model");
 
 
   l.fill_func = (item, old) => {
@@ -536,8 +553,21 @@ void main (string[] args) {
   };
 
   //for (int i = 0; i < 20; i ++)
-  for (int i = 0; i < 200; i ++)
-    store.append (new ModelItem ("NUMBER " + i.to_string (), i));
+  //for (int i = 0; i < 200; i ++)
+    //store.append (new ModelItem ("NUMBER " + i.to_string (), i));
+
+
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("FIRST", 20));
+  store.append (new ModelItem ("THIRD", 300));
+
 
   l.set_model (store);
 
@@ -557,7 +587,7 @@ void main (string[] args) {
 
   box.add (awb);
   box.add (n_widget_label);
-  box.add (model_label);
+  box.add (height_label);
 
   var scb = new Gtk.Button.with_label ("Scroll up");
   scb.clicked.connect (() => {
