@@ -1,6 +1,5 @@
 
 /*
-   - Fast Scrolling (e.g. click on scrollbar trough)
    - Verschiedene Widgetgroessen
    - Revealer in Widget
    - ModelListBox nicht in ScrolledWindow
@@ -271,7 +270,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       w.get_preferred_height_for_width (this.get_allocated_width (),
                                         out min, out nat);
       h += min;
-      assert (min == 34);
+      //assert (min == 34);
     }
 
     assert (h >= 0);
@@ -482,7 +481,8 @@ vadjustment.value:  6593
 // Model stuff {{{
 class ModelItem : GLib.Object {
   public string name;
-  public ModelItem (string s) { name = s; }
+  public int i;
+  public ModelItem (string s, int i) { name = s; this.i = i;}
 }
 
 class ModelWidget : Gtk.Box {
@@ -496,6 +496,10 @@ class ModelWidget : Gtk.Box {
 
   public void set_name (string name) {
     this.name_label.label = name;
+  }
+  public void set_num (int i) {
+    if (i %2 == 0)
+      this.set_size_request (-1, 100);
   }
 }
 
@@ -523,6 +527,7 @@ void main (string[] args) {
       b = new ModelWidget ();
 
     b.set_name (((ModelItem)item).name);
+    b.set_num (((ModelItem)item).i);
     b.remove_button.clicked.connect (() => {
       message ("TODO: Remove");
     });
@@ -532,7 +537,7 @@ void main (string[] args) {
 
   //for (int i = 0; i < 20; i ++)
   for (int i = 0; i < 200; i ++)
-    store.append (new ModelItem ("NUMBER " + i.to_string ()));
+    store.append (new ModelItem ("NUMBER " + i.to_string (), i));
 
   l.set_model (store);
 
@@ -546,7 +551,8 @@ void main (string[] args) {
 
   var awb = new Gtk.Button.with_label ("Add widget");
   awb.clicked.connect (() => {
-    store.append (new ModelItem ("one more"));
+    //store.append (new ModelItem ("one more"));
+                       assert (false);
   });
 
   box.add (awb);
