@@ -7,6 +7,7 @@
    - add rows at runtime
    - remove rows at runtime
    - set model at runtime
+   - signal (dis)connect on list widgets
  */
 
 
@@ -56,7 +57,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.ScrollablePolicy vscroll_policy { get; set; }
   /* }}} */
 
-  private Gtk.Widget? get_old_widget () {
+  private Gtk.Widget? get_old_widget ()
+  {
     if (this.old_widgets.size == 0)
       return null;
 
@@ -65,31 +67,42 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return w;
   }
 
-  public void set_model (GLib.ListModel model) {
+  public void set_model (GLib.ListModel model)
+  {
     this.model = model;
     model.items_changed.connect ((position, removed, added) => {
       assert (false);
     });
   }
 
-  public override void map () {
+  public override void map ()
+  {
     base.map ();
     ensure_visible_widgets ();
   }
 
-  private void insert_child_internal (Gtk.Widget widget, int index) {
+  private void insert_child_internal (Gtk.Widget widget, int index)
+  {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
     this.widgets.insert (index, widget);
   }
 
-  private void remove_child_internal (Gtk.Widget widget) {
+  private void remove_child_internal (Gtk.Widget widget)
+  {
     assert (widget.parent == this);
     assert (widget.get_parent_window () == this.bin_window);
 
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
+  }
+
+  private void remove_all_widgets ()
+  {
+    for (int i = this.widgets.size - 1; i >= 0; i --) {
+      this.remove_child_internal (this.widgets.get (i));
+    }
   }
 
   /* GtkContainer API {{{ */
@@ -216,6 +229,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
+  private int estimated_widget_height ()
+  {
+    int average_widget_height = 1; // XXX This should be 0
+
+    if (this.widgets.size > 0) {
+      foreach (var w in this.widgets) {
+        average_widget_height += w.get_allocated_height ();
+      }
+      average_widget_height /= this.widgets.size;
+    }
+
+    return average_widget_height;
+  }
+
   private void configure_adjustment ()
   {
     int average_widget_height = 0;
@@ -264,10 +291,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // XXX ????
     if (!this.get_mapped ()) return;
 
-    stdout.printf ("%d: ensure_visible_widgets for value %f\n", e_c ++, this._vadjustment.value);
-    message ("--------------------------------------");
-    message ("bin_y: %d", bin_y ());
-    message ("bin_y_diff: %d", this.bin_y_diff);
+
+
+    // bin_y_diff is always postivive (use uint?!)
+    assert (this.bin_y_diff >= 0);
+
+
+
+    //stdout.printf ("%d: ensure_visible_widgets for value %f\n", e_c ++, this._vadjustment.value);
+    //message ("--------------------------------------");
+    //message ("bin_y: %d", bin_y ());
+    //message ("bin_y_diff: %d", this.bin_y_diff);
     //message ("New adjustment value: %f, bin_y: %d", this._vadjustment.value, bin_y ());
 
 
@@ -281,14 +315,76 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.bin_window.get_geometry (null, null, null, out bin_height);
 
 
+    // If the bin_window, with the new vadjustment.value and the old
+    // bin_y_diff is not in the viewport anymore at all...
+    if (bin_y () + bin_height < 0 ||
+        bin_y () > widget_alloc.height) {
+      int estimated_widget_height = estimated_widget_height ();
+      message ("stimated height(%d): %d", this.widgets.size, estimated_widget_height);
+      assert (estimated_widget_height > 0);
+      int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
+      message ("Top widget: %d",  top_widget_index);
+      assert (top_widget_index >= 0);
+      int top_widget_y_diff = (int)this.vadjustment.value -
+                              (top_widget_index * estimated_widget_height);
+      message ("top_widget_y_diff: %d", top_widget_y_diff);
+      assert (top_widget_y_diff >= 0);
+
+      int new_y_diff = (top_widget_index * estimated_widget_height) - top_widget_y_diff;
+      message ("Final y diff: %d", new_y_diff);
+
+      this.bin_y_diff = new_y_diff;
+
+      remove_all_widgets ();
+
+      /*
+        XXX
+Wanted: bin_y_diff: 6562
+vadjustment.value:  6593
+        DIFFERENCE: 31
+
+         */
+
+
+
+      this.model_from = top_widget_index - 1;
+      this.model_to  = model_from - 1;
+      // Fill the list again
+      int cur_height = 0;
+      while (cur_height < this.get_allocated_height () &&
+             model_to < this.model.get_n_items ()) {
+        model_to ++;
+        Gtk.Widget new_widget = fill_func (model.get_object (model_to),
+                                           get_old_widget ());
+        int nat, min;
+        new_widget.get_preferred_height_for_width (this.get_allocated_width (),
+                                                   out nat,
+                                                   out min);
+        cur_height += min;
+        this.insert_child_internal (new_widget, model_to - model_from);
+      }
+      message ("Final cur_height(%d):%d", this.get_allocated_height (), cur_height);
+      message ("Final model_to: %d", model_to);
+
+      message ("bin_y_diff: %d", this.bin_y_diff);
+      message ("     value: %f", this._vadjustment.value);
+      message ("      diff: %d", (int)this._vadjustment.value - this.bin_y_diff);
+      //message ("Widgets now: %d, model_from: %d, model_to: %d",
+               //this.widgets.size, model_from, model_to);
+      return;
+    }
+
+
+
+
+    //message ("vadjustment.value: %f, bin_y_diff: %d", this._vadjustment.value, bin_y_diff);
     // TOP {{{
     // Insert widgets at top
-    message ("vadjustment.value: %f, bin_y_diff: %d", this._vadjustment.value, bin_y_diff);
     while (bin_y () > 0 && model_to > 0) {
       var new_widget = fill_func (model.get_object (model_from - 1),
                                   get_old_widget ());
       assert (new_widget != null);
-      message ("Adding widget at top for index %d", model_from - 1);
+      //message ("Adding widget at top for index %d", model_from - 1);
       model_from --;
       this.insert_child_internal (new_widget, 0);
       int nat, min;
@@ -308,7 +404,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       w.get_allocation (out alloc);
       if (bin_y () + alloc.y + child_y_diff + alloc.height < 0) {
         // Remove widget, resize and move bin_window
-        stdout.printf ("Removing widget %p at top\n", w);
+        //stdout.printf ("Removing widget %p at top\n", w);
         //stdout.printf ("    bin_height: %d\n", bin_height);
         //stdout.printf ("    bin_y_diff: %d\n", bin_y_diff);
         //stdout.printf ("  child_y_diff: %d\n", child_y_diff);
@@ -348,7 +444,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                                  out min,
                                                  out nat);
       bin_height += min;
-      message ("Adding widget at bottom. New bin_height: %d", bin_height);
+      //message ("Adding widget at bottom. New bin_height: %d", bin_height);
     }
 
 
@@ -362,7 +458,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       int widget_y = bin_y () + alloc.y + child_y_diff;
       if (widget_y > this.get_allocated_height ()) {
         this.remove_child_internal (w);
-        message ("Removing bottom widget with index %d", i);
+        //message ("Removing bottom widget with index %d", i);
         model_to --;
       } else
         break;
@@ -481,6 +577,33 @@ void main (string[] args) {
   });
 
   box.pack_end (scb, false, false);
+
+  var sub = new Gtk.Button.with_label ("Scroll down");
+  sub.clicked.connect (() => {
+    scroller.get_vadjustment ().value = scroller.get_vadjustment ().upper -
+                                        scroller.get_vadjustment ().page_size;
+  });
+  box.pack_end (sub, false, false);
+
+
+  var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+  bbox.halign = Gtk.Align.CENTER;
+  bbox.get_style_context ().add_class ("linked");
+  var up = new Gtk.Button.from_icon_name ("pan-up-symbolic");
+  up.clicked.connect (() => {
+    scroller.get_vadjustment ().value --;
+  });
+  bbox.pack_start (up, false, true);
+
+  var down= new Gtk.Button.from_icon_name ("pan-down-symbolic");
+  down.clicked.connect (() => {
+    scroller.get_vadjustment ().value ++;
+  });
+  bbox.pack_start (down, false, true);
+
+  box.pack_end (bbox, false, false);
+
+
 
   // }}}
 
