@@ -100,6 +100,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   {
     assert (widget.parent == this);
     assert (widget.get_parent_window () == this.bin_window);
+    assert (this.widgets.contains (widget));
 
     this.widgets.remove (widget);
     widget.unparent ();
@@ -243,6 +244,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private int estimated_widget_height ()
   {
+
     int average_widget_height = 1; // XXX This should be 0
 
     if (this.widgets.size > 0) {
@@ -264,9 +266,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     int top_widgets    = model_from;
     int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;
 
-    message ("top_widgets: %d", model_from);
-    message ("bottom_widgets: %d", bottom_widgets);
-
     assert (top_widgets >= 0);
     assert (bottom_widgets >= 0);
 
@@ -276,6 +275,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
 
     assert (exact_height >= 0);
+
     return exact_height +
            top_widgets * widget_height +
            bottom_widgets * widget_height;
@@ -285,19 +285,28 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   {
     int list_height = estimated_list_height ();
 
-    message ("new list height: %d", list_height);
+    bool check = false;
 
-    // keep current "viewed" adjustment value
-    int adjustment_inc = (int)this._vadjustment.upper - list_height;
-    adjustment_inc = 0;
+    if (this._vadjustment.upper != list_height) {
+      message ("Changing upper from %f to %d", this._vadjustment.upper, list_height);
+      check = true;
 
-    this._vadjustment.configure (this._vadjustment.value - adjustment_inc, // value,
-                                 0, // lower
-                                 //h, // Upper
-                                 list_height,
-                                 1, //step increment
-                                 0, // page increment
+      int upper_diff = (int)this._vadjustment.upper - list_height;
+      message ("upper diff: %d", upper_diff);
+    }
+
+    double value_before = this._vadjustment.value;
+
+    this._vadjustment.configure (this._vadjustment.value,       // value,
+                                 0,                             // lower
+                                 list_height,                   // Upper
+                                 1,                             // step increment
+                                 2,                             // page increment
                                  this.get_allocated_height ()); // page_size
+
+    if (check) {
+      message ("Value before: %f, value now: %f", value_before, this._vadjustment.value);
+    }
   }
 
   private int get_bin_height (bool p = false)
@@ -359,15 +368,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this.bin_y_diff = new_y_diff;
 
       remove_all_widgets ();
-
-      /*
-        XXX
-Wanted: bin_y_diff: 6562
-vadjustment.value:  6593
-        DIFFERENCE: 31
-
-         */
-
 
 
       this.model_from = top_widget_index;// - 1;
