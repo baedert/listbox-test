@@ -545,6 +545,13 @@ class ModelWidget : Gtk.Box {
 
 // }}}
 
+
+void clicked_cb () {
+  message ("foobar");
+}
+
+
+
 void main (string[] args) {
   Gtk.init (ref args);
   var w = new Gtk.Window ();
@@ -568,32 +575,31 @@ void main (string[] args) {
 
     b.set_name (((ModelItem)item).name);
     b.set_num (((ModelItem)item).i);
-    b.remove_button.clicked.connect (() => {
-      message ("TODO: Remove");
-    });
+    b.remove_button.clicked.connect (clicked_cb);
+    //b.remove_button.clicked.connect (() => {
+      //message ("TODO: Remove");
+    //});
     b.show_all ();
     return b;
   };
 
-  l.destroy_func = (w) => {
+  l.destroy_func = (_w) => {
+    var b = (ModelWidget) _w;
+
+    b.remove_button.clicked.disconnect (clicked_cb);
+
     message ("Destroy widget!");
   };
 
   //for (int i = 0; i < 20; i ++)
-  //for (int i = 0; i < 200; i ++)
-    //store.append (new ModelItem ("NUMBER " + i.to_string (), i));
+  for (int i = 0; i < 200; i ++)
+    store.append (new ModelItem ("NUMBER " + i.to_string (), i));
 
 
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
   //store.append (new ModelItem ("FIRST", 20));
   //store.append (new ModelItem ("FIRST", 20));
   //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("FIRST", 20));
-  store.append (new ModelItem ("THIRD", 300));
+  //store.append (new ModelItem ("THIRD", 300));
 
 
   l.set_model (store);
