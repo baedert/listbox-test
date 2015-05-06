@@ -259,7 +259,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   /* We use the exact height of the shown widgets PLUS the estimated widget height (which we get from the
    * shown widgets) for all the invisible rows */
-  private int estimated_list_height ()
+  private int estimated_list_height (out int top_part = null)
   {
     int widget_height = estimated_widget_height ();
 
@@ -276,6 +276,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     assert (exact_height >= 0);
 
+    top_part = top_widgets * widget_height;
+
     return exact_height +
            top_widgets * widget_height +
            bottom_widgets * widget_height;
@@ -283,21 +285,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void configure_adjustment ()
   {
-    int list_height = estimated_list_height ();
+    int top_widgets_height;
+    int list_height = estimated_list_height (out top_widgets_height);
 
     bool check = false;
 
+      int upper_diff = list_height - (int)this._vadjustment.upper;
     if (this._vadjustment.upper != list_height) {
       message ("Changing upper from %f to %d", this._vadjustment.upper, list_height);
       check = true;
 
-      int upper_diff = (int)this._vadjustment.upper - list_height;
       message ("upper diff: %d", upper_diff);
+
+      this.bin_y_diff = top_widgets_height;
     }
 
     double value_before = this._vadjustment.value;
 
-    this._vadjustment.configure (this._vadjustment.value,       // value,
+    this._vadjustment.configure (this._vadjustment.value + upper_diff,       // value,
                                  0,                             // lower
                                  list_height,                   // Upper
                                  1,                             // step increment
