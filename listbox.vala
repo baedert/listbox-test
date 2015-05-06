@@ -12,6 +12,7 @@
 
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
+delegate void WidgetDestroyFunc (Gtk.Widget? widget);
 
 
 Gtk.Label n_widget_label;
@@ -22,7 +23,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> old_widgets = new Gee.ArrayList<Gtk.Widget> ();
   private Gdk.Window bin_window;
   private GLib.ListModel model;
-  public WidgetFillFunc? fill_func;
+  public WidgetFillFunc fill_func;
+  public WidgetDestroyFunc destroy_func;
   private int bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 
   private int model_from = 0;
@@ -102,6 +104,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (widget.get_parent_window () == this.bin_window);
     assert (this.widgets.contains (widget));
 
+    this.destroy_func (widget);
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
@@ -570,6 +573,10 @@ void main (string[] args) {
     });
     b.show_all ();
     return b;
+  };
+
+  l.destroy_func = (w) => {
+    message ("Destroy widget!");
   };
 
   //for (int i = 0; i < 20; i ++)
