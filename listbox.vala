@@ -1,12 +1,12 @@
 
 /*
+   == TODO LIST ==
    - Verschiedene Widgetgroessen
    - Revealer in Widget
-   - ModelListBox nicht in ScrolledWindow
    - add rows at runtime
    - remove rows at runtime
    - set model at runtime
-   - signal (dis)connect on list widgets
+   - ModelListBox nicht in ScrolledWindow
  */
 
 
@@ -196,7 +196,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
 
     ensure_visible_widgets ();
-    configure_adjustment ();
+    //configure_adjustment ();
   }
 
   public override void realize ()
@@ -291,30 +291,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     int top_widgets_height;
     int list_height = estimated_list_height (out top_widgets_height);
 
-    bool check = false;
-
-      int upper_diff = list_height - (int)this._vadjustment.upper;
+    double new_value = this._vadjustment.value;
     if (this._vadjustment.upper != list_height) {
-      message ("Changing upper from %f to %d", this._vadjustment.upper, list_height);
-      check = true;
 
-      message ("upper diff: %d", upper_diff);
+      //message ("Changing upper from %f to %d", this._vadjustment.upper, list_height);
 
+
+      //message ("top_widgets_height: %d", top_widgets_height);
+      new_value = top_widgets_height - invisible_bin_top ();
       this.bin_y_diff = top_widgets_height;
     }
 
-    double value_before = this._vadjustment.value;
 
-    this._vadjustment.configure (this._vadjustment.value + upper_diff,       // value,
+    this._vadjustment.configure (new_value,                     // value,
                                  0,                             // lower
                                  list_height,                   // Upper
                                  1,                             // step increment
                                  2,                             // page increment
                                  this.get_allocated_height ()); // page_size
-
-    if (check) {
-      message ("Value before: %f, value now: %f", value_before, this._vadjustment.value);
-    }
   }
 
   private int get_bin_height (bool p = false)
@@ -337,9 +331,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return -(int)this._vadjustment.value + this.bin_y_diff;
   }
 
+  /**
+   * Returns the invisible part at the top of bin_window.
+   */
+  private inline int invisible_bin_top ()
+  {
+    int k = -(int)this._vadjustment.value + this.bin_y_diff;
+    if (k > 0)
+      message ("k: %d", k);
+    assert (k <= 0);
+
+    return k;
+  }
+
   private void ensure_visible_widgets ()
   {
     if (!this.get_mapped ()) return;
+
+    configure_adjustment ();
 
     // bin_y_diff is always postivive (use uint?!)
     assert (this.bin_y_diff >= 0);
@@ -359,10 +368,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (bin_y () + bin_height < 0 ||
         bin_y () > widget_alloc.height) {
       int estimated_widget_height = estimated_widget_height ();
-      message ("estimated height(%d): %d", this.widgets.size, estimated_widget_height);
+      //message ("estimated height(%d): %d", this.widgets.size, estimated_widget_height);
       assert (estimated_widget_height > 0);
       int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
-      message ("Top widget: %d",  top_widget_index);
+      //message ("Top widget: %d",  top_widget_index);
       assert (top_widget_index >= 0);
       //int top_widget_y_diff = (int)this.vadjustment.value -
                               //(top_widget_index * estimated_widget_height);
@@ -394,12 +403,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         cur_height += min;
         this.insert_child_internal (new_widget, model_to - model_from);
       }
-      message ("Final cur_height(%d):%d", this.get_allocated_height (), cur_height);
-      message ("Final model_to: %d", model_to);
+      //message ("Final cur_height(%d):%d", this.get_allocated_height (), cur_height);
+      //message ("Final model_to: %d", model_to);
 
-      message ("bin_y_diff: %d", this.bin_y_diff);
-      message ("     value: %f", this._vadjustment.value);
-      message ("      diff: %d", (int)this._vadjustment.value - this.bin_y_diff);
+      //message ("bin_y_diff: %d", this.bin_y_diff);
+      //message ("     value: %f", this._vadjustment.value);
+      //message ("      diff: %d", (int)this._vadjustment.value - this.bin_y_diff);
       //message ("Widgets now: %d, model_from: %d, model_to: %d",
                //this.widgets.size, model_from, model_to);
       return;
@@ -506,6 +515,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (this.widgets.size == (model_to - model_from + 1));
     if (this._vadjustment.value == 0)
       assert (this.bin_y_diff == 0);
+
+    if ((int)this._vadjustment.value ==
+        ((int)this._vadjustment.upper - (int)this._vadjustment.page_size)) {
+      message ("%d/%d/%d", bin_y (), bin_height, (int)this._vadjustment.upper);
+      //assert (bin_y () + bin_height == (int)this._vadjustment.upper);
+    }
   }
 
   private void update_bin_window ()
@@ -544,7 +559,7 @@ class ModelWidget : Gtk.Box {
     this.name_label.label = name;
   }
   public void set_num (int i) {
-    this.set_size_request (-1, i);
+    this.set_size_request (-1, 4);
   }
 }
 
@@ -581,9 +596,9 @@ void main (string[] args) {
     b.set_name (((ModelItem)item).name);
     b.set_num (((ModelItem)item).i);
     b.remove_button.clicked.connect (clicked_cb);
-    //b.remove_button.clicked.connect (() => {
-      //message ("TODO: Remove");
-    //});
+    if (((ModelItem)item).i == store.get_n_items () -1) {
+      b.set_size_request (-1, 500);
+    }
     b.show_all ();
     return b;
   };
@@ -592,19 +607,11 @@ void main (string[] args) {
     var b = (ModelWidget) _w;
 
     b.remove_button.clicked.disconnect (clicked_cb);
-
-    message ("Destroy widget!");
   };
 
-  //for (int i = 0; i < 20; i ++)
-  for (int i = 0; i < 200; i ++)
+  for (int i = 0; i < 20; i ++)
+  //for (int i = 0; i < 200; i ++)
     store.append (new ModelItem ("NUMBER " + i.to_string (), i));
-
-
-  //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("FIRST", 20));
-  //store.append (new ModelItem ("THIRD", 300));
 
 
   l.set_model (store);
