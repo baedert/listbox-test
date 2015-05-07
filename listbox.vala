@@ -288,17 +288,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void configure_adjustment ()
   {
+    message ("-- configure_adjustment");
     int top_widgets_height;
     int list_height = estimated_list_height (out top_widgets_height);
 
     double new_value = this._vadjustment.value;
     if (this._vadjustment.upper != list_height) {
-
-      //message ("Changing upper from %f to %d", this._vadjustment.upper, list_height);
-
-
-      //message ("top_widgets_height: %d", top_widgets_height);
-      new_value = top_widgets_height - invisible_bin_top ();
+      message ("new_value = %d - %d", top_widgets_height, bin_y ());
+      new_value = top_widgets_height - bin_y ();
+      message ("bin_y_diff = %d", top_widgets_height);
       this.bin_y_diff = top_widgets_height;
     }
 
@@ -326,29 +324,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return h;
   }
 
-  private inline int bin_y ()
-  {
-    return -(int)this._vadjustment.value + this.bin_y_diff;
-  }
-
   /**
-   * Returns the invisible part at the top of bin_window.
+   * @return The bin_window's y coordinate in widget coordinates.
    */
-  private inline int invisible_bin_top ()
+  private int bin_y ()
   {
-    int k = -(int)this._vadjustment.value + this.bin_y_diff;
-    if (k > 0)
-      message ("k: %d", k);
-    assert (k <= 0);
+    //message ("p = -%d + %d", (int)this._vadjustment.value, this.bin_y_diff);
+    int p = -(int)this._vadjustment.value + this.bin_y_diff;
 
-    return k;
+    //if (p > 0)
+      //message ("p: %d, bin_y_diff: %d, value: %f", p, this.bin_y_diff, this._vadjustment.value);
+
+    return p;
   }
 
   private void ensure_visible_widgets ()
   {
     if (!this.get_mapped ()) return;
 
-    configure_adjustment ();
+    message ("-- ensure_visible_widgets");
 
     // bin_y_diff is always postivive (use uint?!)
     assert (this.bin_y_diff >= 0);
@@ -363,6 +357,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.bin_window.get_geometry (null, null, null, out bin_height);
 
 
+    // OUT OF SIGHT {{{
     // If the bin_window, with the new vadjustment.value and the old
     // bin_y_diff is not in the viewport anymore at all...
     if (bin_y () + bin_height < 0 ||
@@ -380,7 +375,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       //assert (top_widget_y_diff >= 0);
 
       int new_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
-      message ("Final y diff: %d", new_y_diff);
+      //message ("Final y diff: %d", new_y_diff);
 
       this.bin_y_diff = new_y_diff;
 
@@ -413,11 +408,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                //this.widgets.size, model_from, model_to);
       return;
     }
-
-
-
-
-    //message ("vadjustment.value: %f, bin_y_diff: %d", this._vadjustment.value, bin_y_diff);
+    // }}}
+    configure_adjustment ();
     // TOP {{{
     // Insert widgets at top
     while (bin_y () > 0 && model_to > 0) {
@@ -511,6 +503,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.update_bin_window ();
     position_children ();
 
+
+
+
+    // XXX This assertion MUST be here, it ca be temporarily wrong.
     assert (bin_y () <= 0);
     assert (this.widgets.size == (model_to - model_from + 1));
     if (this._vadjustment.value == 0)
@@ -518,8 +514,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     if ((int)this._vadjustment.value ==
         ((int)this._vadjustment.upper - (int)this._vadjustment.page_size)) {
-      message ("%d/%d/%d", bin_y (), bin_height, (int)this._vadjustment.upper);
-      //assert (bin_y () + bin_height == (int)this._vadjustment.upper);
+      //message ("%d/%d/%d", bin_y (), bin_height, (int)this._vadjustment.upper);
+      int bin_bottom = (int)this._vadjustment.value + bin_y () + bin_height;
+      //message ("bin_bottom: %d, upper: %f", bin_bottom, this._vadjustment.upper);
+      assert (bin_bottom == (int)this._vadjustment.upper);
     }
   }
 
