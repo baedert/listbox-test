@@ -1,36 +1,57 @@
 
 
-
+Soup.Session SESSION;
 
 class SampleModelItem : GLib.Object {
   public string path;
+  public int num;
+  public SampleModelItem (int num) {
+    this.num = num;
+  }
 }
 
 class SampleWidget : Gtk.Grid {
-  private Gtk.Image image = new Gtk.Image ();
-  private GLib.Cancellable cancel;
+  public Gtk.Image image = new Gtk.Image ();
+  public Gtk.Label label = new Gtk.Label ("");
 
   public SampleWidget () {
     this.attach (image, 0, 0, 1, 1);
+    this.attach (label, 1, 0, 1, 1);
+    var sep = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
+    sep.hexpand = true;
+    this.attach (sep, 0, 1, 2, 1);
   }
 
-  public async void start_load_image (string path) {
-    try {
-      this.cancel = new GLib.Cancellable ();
-      var file = GLib.File.new_for_path (path);
-      var stream = file.read ();
-      var pixbuf = yield new Gdk.Pixbuf.from_stream_async (stream, this.cancel);
+  //public async void start_load_image (string path) {
+    //this.cancel = new GLib.Cancellable ();
 
-      this.image.pixbuf = pixbuf;
-    } catch (GLib.Error e) {
+    //var msg = new Soup.Message ("GET", "http://corebird.baedert.org/corebird.png");
+    //this.cancel.cancelled.connect (() => {
+      //SESSION.cancel_message (msg, 100);
+    //});
+    //SESSION.queue_message (msg, () => {
+      //if (msg.response_body.data == null)
+        //return;
 
-    }
-  }
+      //var memory_stream = new MemoryInputStream.from_data(msg.response_body.data,
+                                                          //null);
+      //try {
+        //this.image.pixbuf = new Gdk.Pixbuf.from_stream_at_scale (memory_stream,
+                                                                 //20 + (int)(GLib.Random.next_int () % 70),
+                                                                 //20 + (int)(GLib.Random.next_int () % 80),
+                                                                 //false, this.cancel);
+      //} catch (GLib.Error e) {
+        // Ignore.
+      //}
 
-  public void abort_load_image () {
-    this.cancel.cancel ();
-    this.cancel.reset ();
-  }
+      //memory_stream.close ();
+    //});
+  //}
+
+  //public void abort_load_image () {
+    //this.cancel.cancel ();
+    //this.cancel.reset ();
+  //}
 }
 
 int current_image = 0;
@@ -46,23 +67,17 @@ void main (string[] args) {
   var list_box = new ModelListBox ();
   var scroller = new Gtk.ScrolledWindow (null, null);
 
+  SESSION = new Soup.Session ();
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
 
-  // Init sample data
-  paths = new Gee.ArrayList<string> ();
-  var folder = File.new_for_path ("/usr/share/icons/hicolor/48x48/apps/");
-  var enumerator = folder.enumerate_children (FileAttribute.STANDARD_NAME, 0);
 
-  GLib.FileInfo file_info;
-  while ((file_info  = enumerator.next_file ()) != null) {
-    var it = new SampleModelItem ();
-    it.path = folder.get_child (file_info.get_name ()).get_path ();
-    model.append (it);
-    //paths.add (folder.get_child (file_info.get_name ()).get_path ());
-  }
+  //for (int i = 0; i < 100000; i ++)
+  for (int i = 0; i < 10; i ++)
+    model.append (new SampleModelItem (i));
 
 
+  //int i = 0;
   // Listbox setup
   list_box.fill_func = (item, widget) => {
     SampleWidget sample_widget = (SampleWidget) widget;
@@ -72,9 +87,11 @@ void main (string[] args) {
 
 
     var sample = (SampleModelItem) item;
-    message ("fill func");
+    //message ("fill func");
 
-    sample_widget.start_load_image.begin (sample.path);
+    sample_widget.label.label = "ZOMG %d".printf (sample.num);
+    sample_widget.set_size_request (-1, 20 + (int)(GLib.Random.next_int () % 200));
+    //sample_widget.start_load_image.begin (sample.path);
     //sample_widget.start_load_image.begin (paths.get (current_image));
 
     //current_image = current_image +1 % paths.size;
@@ -84,9 +101,10 @@ void main (string[] args) {
   };
 
   list_box.destroy_func = (widget) => {
-    var sample_widget = (SampleWidget) widget;
+    //var sample_widget = (SampleWidget) widget;
+    //sample_widget.image.pixbuf = null;
 
-    sample_widget.abort_load_image ();
+    //sample_widget.abort_load_image ();
   };
 
 
@@ -95,6 +113,7 @@ void main (string[] args) {
   scroller.add (list_box);
 
   window.add (scroller);
+  window.resize (400, 500);
   window.show_all ();
   Gtk.main ();
 }

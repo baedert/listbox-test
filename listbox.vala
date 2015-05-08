@@ -118,8 +118,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     for (int i = this.widgets.size - 1; i >= 0; i --) {
       this.remove_child_internal (this.widgets.get (i));
     }
-    n_widget_label.label = "Widgets: %d (%d)"
-      .printf (this.widgets.size, this.old_widgets.size);
+    //n_widget_label.label = "Widgets: %d (%d)"
+      //.printf (this.widgets.size, this.old_widgets.size);
     update_height ();
   }
 
@@ -175,7 +175,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     child_allocation.width = allocation.width;
 
     foreach (Gtk.Widget child in this.widgets) {
-      child.get_preferred_height (out child_allocation.height, out imp);
+      child.get_preferred_height_for_width (this.get_allocated_width (),
+                                            out child_allocation.height,
+                                            out imp);
       child_allocation.y = y;
       child.size_allocate (child_allocation);
       y += child_allocation.height;
@@ -267,6 +269,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     int top_widgets    = model_from;
     int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;
+
+    if (top_widgets < 0)
+      message ("top_widgets: %d", top_widgets);
 
     assert (top_widgets >= 0);
     assert (bottom_widgets >= 0);
@@ -410,6 +415,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       //message ("      diff: %d", (int)this._vadjustment.value - this.bin_y_diff);
       //message ("Widgets now: %d, model_from: %d, model_to: %d",
                //this.widgets.size, model_from, model_to);
+      configure_adjustment ();
       return;
     }
     // }}}
@@ -513,17 +519,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // XXX This assertion MUST be here, it ca be temporarily wrong.
     assert (bin_y () <= 0);
     assert (this.widgets.size == (model_to - model_from + 1));
-    if (this._vadjustment.value == 0)
+    if (this._vadjustment.value == 0) {
       assert (this.bin_y_diff == 0);
-
-    if ((int)this._vadjustment.value ==
-        ((int)this._vadjustment.upper - (int)this._vadjustment.page_size)) {
-
-      //message ("%d/%d/%d", bin_y (), bin_height, (int)this._vadjustment.upper);
-
-      int bin_bottom = (int)this._vadjustment.value + bin_y () + bin_height;
-      //message ("bin_bottom: %d, upper: %f", bin_bottom, this._vadjustment.upper);
-      //assert (bin_bottom == (int)this._vadjustment.upper);
+      assert (this.model_from == 0);
+      assert (bin_y () == 0);
     }
   }
 
