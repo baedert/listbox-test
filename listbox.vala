@@ -58,6 +58,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.ScrollablePolicy vscroll_policy { get; set; }
   /* }}} */
 
+  public ModelListBox () {
+    this.get_style_context ().add_class ("list");
+  }
+
+
   private Gtk.Widget? get_old_widget ()
   {
     if (this.old_widgets.size == 0)
@@ -152,6 +157,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     ct.set_source_rgba (1, 1, 1, 1);
     ct.rectangle (x, y, w, h);
     ct.fill ();
+
+
+    //Gtk.Allocation alloc;
+    //this.get_allocation (out alloc);
+    //this.get_style_context ().render_background (ct, alloc.x, alloc.y, alloc.width, alloc.height);
 
     if (Gtk.cairo_should_draw_window (ct, this.bin_window)) {
       foreach (var child in widgets) {
