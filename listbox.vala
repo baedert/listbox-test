@@ -361,8 +361,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   {
     if (!this.get_mapped ()) return;
 
-    //message ("-- ensure_visible_widgets");
-
     // bin_y_diff is always postivive (use uint?!)
     assert (this.bin_y_diff >= 0);
 

@@ -5,8 +5,10 @@ Soup.Session SESSION;
 class SampleModelItem : GLib.Object {
   public string path;
   public int num;
-  public SampleModelItem (int num) {
+  public int size;
+  public SampleModelItem (int num, int size) {
     this.num = num;
+    this.size = size;
   }
 }
 
@@ -74,7 +76,7 @@ void main (string[] args) {
 
   //for (int i = 0; i < 100000; i ++)
   for (int i = 0; i < 10; i ++)
-    model.append (new SampleModelItem (i));
+    model.append (new SampleModelItem (i, 20 + (int)(GLib.Random.next_int () % 200)));
 
 
   //int i = 0;
@@ -90,7 +92,8 @@ void main (string[] args) {
     //message ("fill func");
 
     sample_widget.label.label = "ZOMG %d".printf (sample.num);
-    sample_widget.set_size_request (-1, 20 + (int)(GLib.Random.next_int () % 200));
+    sample_widget.set_size_request (-1, sample.size);
+    //sample_widget.set_size_request (-1, 20 + (int)(GLib.Random.next_int () % 200));
     //sample_widget.start_load_image.begin (sample.path);
     //sample_widget.start_load_image.begin (paths.get (current_image));
 
