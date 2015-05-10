@@ -3,7 +3,6 @@
 Soup.Session SESSION;
 
 class SampleModelItem : GLib.Object {
-  public string path;
   public int num;
   public int size;
   public SampleModelItem (int num, int size) {
@@ -55,12 +54,6 @@ class SampleWidget : Gtk.Grid {
     //this.cancel.reset ();
   //}
 }
-
-int current_image = 0;
-
-Gee.ArrayList<string> paths;
-
-
 
 
 void main (string[] args) {
