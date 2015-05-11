@@ -308,9 +308,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     double new_value = this._vadjustment.value;
     if (this._vadjustment.upper != list_height) {
-      //message ("new_value = %d - %d", top_widgets_height, bin_y ());
-      new_value = top_widgets_height - bin_y (); // XXX int?
-      //message ("bin_y_diff = %d", top_widgets_height);
+      int c = bin_y ();
+      new_value = top_widgets_height - c; // XXX int?
+      message ("new_value = %d - %d -> %f", top_widgets_height, c, new_value);
+      message ("bin_y_diff = %d", top_widgets_height);
       this.bin_y_diff = top_widgets_height;
     }
 
@@ -326,6 +327,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                  1,                             // step increment
                                  2,                             // page increment
                                  this.get_allocated_height ()); // page_size
+
+    if (bin_y () >= 0)
+      message ("bin_y: %d", bin_y ());
+    assert (bin_y () <= 0);
   }
 
   private int get_bin_height (bool p = false)
@@ -411,7 +416,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     //configure_adjustment ();
     // TOP {{{
     // Insert widgets at top
-    while (bin_y () > 0 && model_to > 0) {
+    while (bin_y () > 0 && model_from > 0) {
       var new_widget = fill_func (model.get_object (model_from - 1),
                                   get_old_widget ());
       assert (new_widget != null);
@@ -488,7 +493,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.update_bin_window ();
     position_children ();
 
-    assert (bin_y () <= 0);
+    //assert (bin_y () <= 0);
     assert (this.widgets.size == (model_to - model_from + 1));
     assert (model_to <= model.get_n_items () -1);
     assert (model_to >= 0);
@@ -507,11 +512,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     Gtk.Allocation allocation;
     this.get_allocation (out allocation);
 
-    int new_y = allocation.y - (int) this._vadjustment.value + this.bin_y_diff;
-
     int h = get_bin_height ();
     this.bin_window.move_resize (allocation.x,
-                                 new_y,
+                                 bin_y (),
                                  allocation.width,
                                  h);
   }
