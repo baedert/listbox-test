@@ -310,7 +310,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (this._vadjustment.upper != list_height) {
       //message ("new_value = %d - %d", top_widgets_height, bin_y ());
       new_value = top_widgets_height - bin_y (); // XXX int?
-      message ("bin_y_diff = %d", top_widgets_height);
+      //message ("bin_y_diff = %d", top_widgets_height);
       this.bin_y_diff = top_widgets_height;
     }
 
@@ -408,7 +408,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       return;
     }
     // }}}
-    configure_adjustment ();
+    //configure_adjustment ();
     // TOP {{{
     // Insert widgets at top
     while (bin_y () > 0 && model_to > 0) {
@@ -436,8 +436,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       if (bin_y () + alloc.y + child_y_diff + alloc.height < 0) {
         // Remove widget, resize and move bin_window
         bin_height -= alloc.height;
-        message ("bin_y_diff += %d", alloc.height);
         this.bin_y_diff += alloc.height;
+        message ("Removing widget with index %d: bin_y_diff += %d -> %d", i, alloc.height, bin_y_diff);
         child_y_diff -= alloc.height;
         this.remove_child_internal (w);
         model_from ++;
@@ -480,6 +480,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
 
     // }}}
+
+    configure_adjustment ();
 
 
     // Maybe optimize this out if nothing changed?

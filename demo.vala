@@ -20,6 +20,8 @@ class SampleWidget : Gtk.Grid {
     this.attach (label, 1, 0, 1, 1);
     var sep = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
     sep.hexpand = true;
+    sep.vexpand = true;
+    sep.valign = Gtk.Align.END;
     this.attach (sep, 0, 1, 2, 1);
   }
 
