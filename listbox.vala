@@ -58,6 +58,29 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public Gtk.ScrollablePolicy vscroll_policy { get; set; }
   /* }}} */
 
+  /* Debugging Poperties {{{ */
+  private uint _max_widgets = 0;
+  public uint max_widgets {
+    get {
+      return _max_widgets;
+    }
+    set {
+      _max_widgets = value;
+    }
+  }
+
+  private uint _cur_widget = 0;
+  public uint cur_widgets {
+    get {
+      return _cur_widget;
+    }
+    set {
+      assert (false);
+    }
+  }
+  /* }}} */
+
+
   public ModelListBox () {
     this.get_style_context ().add_class ("list");
   }
@@ -87,20 +110,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     ensure_visible_widgets ();
   }
 
-
-  private void update_height () {
-    int h = estimated_list_height ();
-    //height_label.label = "Estimated height: %d".printf (h);
-  }
-
   private void insert_child_internal (Gtk.Widget widget, int index)
   {
     widget.set_parent_window (this.bin_window);
     widget.set_parent (this);
     this.widgets.insert (index, widget);
-    //n_widget_label.label = "Widgets: %d (%d)"
-      //.printf (this.widgets.size, this.old_widgets.size);
-    update_height ();
   }
 
   private void remove_child_internal (Gtk.Widget widget)
@@ -113,9 +127,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
-    //n_widget_label.label = "Widgets: %d (%d)"
-      //.printf (this.widgets.size, this.old_widgets.size);
-    update_height ();
+
+    if (old_widgets.size > _max_widgets)
+      this.max_widgets = old_widgets.size;
   }
 
   private void remove_all_widgets ()
@@ -123,9 +137,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     for (int i = this.widgets.size - 1; i >= 0; i --) {
       this.remove_child_internal (this.widgets.get (i));
     }
-    //n_widget_label.label = "Widgets: %d (%d)"
-      //.printf (this.widgets.size, this.old_widgets.size);
-    update_height ();
   }
 
   /* GtkContainer API {{{ */

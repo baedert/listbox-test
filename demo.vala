@@ -134,6 +134,10 @@ void main (string[] args) {
     //sample_widget.abort_load_image ();
   };
 
+  list_box.notify["max_widgets"].connect (() => {
+    error ("zomg");
+  });
+
 
 
   list_box.set_model (model);
