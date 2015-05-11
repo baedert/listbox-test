@@ -105,6 +105,7 @@ void main (string[] args) {
   // Listbox setup
   list_box.fill_func = (item, widget) => {
     SampleWidget sample_widget = (SampleWidget) widget;
+    assert (item != null);
 
     if (widget == null)
       sample_widget = new SampleWidget ();
