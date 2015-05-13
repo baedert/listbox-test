@@ -47,36 +47,6 @@ class SampleWidget : Gtk.Grid {
     return false;
   }
 
-  //public async void start_load_image (string path) {
-    //this.cancel = new GLib.Cancellable ();
-
-    //var msg = new Soup.Message ("GET", "http://corebird.baedert.org/corebird.png");
-    //this.cancel.cancelled.connect (() => {
-      //SESSION.cancel_message (msg, 100);
-    //});
-    //SESSION.queue_message (msg, () => {
-      //if (msg.response_body.data == null)
-        //return;
-
-      //var memory_stream = new MemoryInputStream.from_data(msg.response_body.data,
-                                                          //null);
-      //try {
-        //this.image.pixbuf = new Gdk.Pixbuf.from_stream_at_scale (memory_stream,
-                                                                 //20 + (int)(GLib.Random.next_int () % 70),
-                                                                 //20 + (int)(GLib.Random.next_int () % 80),
-                                                                 //false, this.cancel);
-      //} catch (GLib.Error e) {
-        // Ignore.
-      //}
-
-      //memory_stream.close ();
-    //});
-  //}
-
-  //public void abort_load_image () {
-    //this.cancel.cancel ();
-    //this.cancel.reset ();
-  //}
 }
 
 
@@ -126,21 +96,12 @@ void main (string[] args) {
 
     sample_widget.num = sample.num;
     sample_widget.size = (int)model.get_n_items ();
-    //sample_widget.set_size_request (-1, 20 + (int)(GLib.Random.next_int () % 200));
-    //sample_widget.start_load_image.begin (sample.path);
-    //sample_widget.start_load_image.begin (paths.get (current_image));
-
-    //current_image = current_image +1 % paths.size;
 
     sample_widget.show_all ();
     return sample_widget;
   };
 
   list_box.destroy_func = (widget) => {
-    //var sample_widget = (SampleWidget) widget;
-    //sample_widget.image.pixbuf = null;
-
-    //sample_widget.abort_load_image ();
   };
 
 
