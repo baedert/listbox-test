@@ -27,8 +27,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   public WidgetDestroyFunc destroy_func;
   private int bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 
-  private int model_from = 0;
-  private int model_to   = -1;
+  private int _model_from = 0;
+  private int _model_to   = -1;
 
   /* GtkScrollable properties  {{{ */
   private Gtk.Adjustment _vadjustment;
@@ -79,6 +79,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this._cur_widgets = value;
     }
   }
+
+  public int model_from {
+    get {
+      return this._model_from;
+    }
+    private set {
+      this._model_from = value;
+    }
+  }
+
+  public int model_to {
+    get {
+      return this._model_to;
+    }
+    private set {
+      this._model_to = value;
+    }
+  }
+
   /* }}} */
 
 

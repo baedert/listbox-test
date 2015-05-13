@@ -95,8 +95,8 @@ void main (string[] args) {
 
   model.append (new SampleModelItem (0, 2));
 
-  //for (int i = 0; i < 100000; i ++)
-  for (int i = 1; i < 59; i ++)
+  for (int i = 0; i < 1000000; i ++)
+  //for (int i = 1; i < 59; i ++)
     model.append (new SampleModelItem (i, 20 + (i * 10)));
 
 
@@ -147,26 +147,29 @@ void main (string[] args) {
   list_box.set_model (model);
   scroller.add (list_box);
 
+  var items_label = new Gtk.Label ("");
   var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
   var box2 = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
   n_widgets_label.xalign = 0.0f;
   box2.add (n_widgets_label);
   model_size_label.xalign = 1.0f;
   box2.add (model_size_label);
+  box2.add (items_label);
   box.add (box2);
   box.add (scroller);
 
 
   model_size_label.label = "Items: %u".printf (model.get_n_items ());
 
-  //list_box.notify["max-widgets"].connect (() => {
-    //message ("Max widgets: %u", list_box.max_widgets);
-
-  //});
-
   list_box.notify["cur-widgets"].connect (() => {
-    //message ("Cur widgets: %u", list_box.cur_widgets);
     n_widgets_label.label = "Widgets used: %u".printf (list_box.cur_widgets);
+  });
+
+  list_box.notify["model-from"].connect (() => {
+    items_label.label = "Visible: %d - %d".printf (list_box.model_from, list_box.model_to);
+  });
+  list_box.notify["model-to"].connect (() => {
+    items_label.label = "Visible: %d - %d".printf (list_box.model_from, list_box.model_to);
   });
 
 
