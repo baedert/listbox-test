@@ -1,12 +1,14 @@
 
 /*
    == TODO LIST ==
-   - Verschiedene Widgetgroessen
-   - Revealer in Widget
-   - add rows at runtime
-   - remove rows at runtime
-   - set model at runtime
+   - Test complex widgets!
+   - Revealer in Widget (Should work already?)
+   - add rows at runtime (3 cases)
+   - remove rows at runtime (3 cases or 2?)
    - ModelListBox nicht in ScrolledWindow
+   - value animation is broken if upper changes during it.
+     Might need changes in gtkadjustment.c (_scroll_to_value)
+   - remove WidgetDestroyFunc again?
  */
 
 
@@ -122,6 +124,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     model.items_changed.connect ((position, removed, added) => {
       assert (false);
     });
+
+    this.queue_resize ();
   }
 
   public override void map ()
@@ -326,8 +330,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     int widget_height = estimated_widget_height ();
 
     assert (widget_height >= 0);
-
     assert (model_from >= 0);
+
+    if (this.model == null)
+      return 0;
 
     int top_widgets    = model_from;
     int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;
@@ -406,7 +412,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void ensure_visible_widgets ()
   {
-    if (!this.get_mapped ()) return;
+    if (!this.get_mapped () ||
+        this.model == null)
+      return;
 
 
     int bin_height;

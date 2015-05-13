@@ -63,15 +63,14 @@ void main (string[] args) {
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
 
-  model.append (new SampleModelItem (0, 2));
+  //model.append (new SampleModelItem (0, 2));
 
-  for (int i = 0; i < 1000000; i ++)
-  //for (int i = 1; i < 59; i ++)
+  //for (int i = 0; i < 1000000; i ++)
+  for (int i = 0; i < 100; i ++)
     model.append (new SampleModelItem (i, 20 + (i * 10)));
 
 
-  model.append (new SampleModelItem (59, 2));
-    //model.append (new SampleModelItem (i, 20 + (int)(GLib.Random.next_int () % 200)));
+  //model.append (new SampleModelItem (59, 2));
 
 
   //int i = 0;
@@ -105,7 +104,10 @@ void main (string[] args) {
   };
 
 
-  list_box.set_model (model);
+  GLib.Timeout.add (2000, () => {
+    list_box.set_model (model);
+    return false;
+  });
   scroller.add (list_box);
 
   var items_label = new Gtk.Label ("");
