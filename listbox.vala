@@ -2,9 +2,9 @@
 /*
    == TODO LIST ==
    - Test complex widgets!
-   - Revealer in Widget (Should work already?)
    - add rows at runtime (3 cases)
    - remove rows at runtime (3 cases or 2?)
+   - Revealer in Widget (Should work already?)
    - ModelListBox nicht in ScrolledWindow
    - value animation is broken if upper changes during it.
      Might need changes in gtkadjustment.c (_scroll_to_value)
@@ -40,8 +40,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       if (this._vadjustment != null) {
         this._vadjustment.value_changed.connect (ensure_visible_widgets);
         configure_adjustment ();
-      } else
-        warning ("vadjustment == NULL");
+      }
     }
     get {
       return this._vadjustment;
@@ -120,12 +119,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   public void set_model (GLib.ListModel model)
   {
-    this.model = model;
-    model.items_changed.connect ((position, removed, added) => {
-      assert (false);
-    });
+    if (this.model != null) {
+      this.model.items_changed.disconnect (items_changed_cb);
+    }
 
+    this.model = model;
+    this.model.items_changed.connect (items_changed_cb);
     this.queue_resize ();
+  }
+
+  private void items_changed_cb (uint position, uint removed, uint added)
+  {
+    // XXX use added/removed for the calculation here!
+    if (position >= model_from &&
+        position <= model_to) {
+      // we need to do extra work to change some visible widgets
+    } else {
+      // Everything's fine, basically.
+    }
   }
 
   public override void map ()
@@ -332,8 +343,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (widget_height >= 0);
     assert (model_from >= 0);
 
-    if (this.model == null)
+    if (this.model == null) {
+      top_part = 0;
       return 0;
+    }
 
     int top_widgets    = model_from;
     int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;

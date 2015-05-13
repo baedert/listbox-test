@@ -44,7 +44,7 @@ class SampleWidget : Gtk.Grid {
     ct.stroke ();
 
 
-    return false;
+    return base.draw (ct);
   }
 
 }
@@ -104,10 +104,7 @@ void main (string[] args) {
   };
 
 
-  GLib.Timeout.add (2000, () => {
-    list_box.set_model (model);
-    return false;
-  });
+  list_box.set_model (model);
   scroller.add (list_box);
 
   var items_label = new Gtk.Label ("");
@@ -136,6 +133,18 @@ void main (string[] args) {
   });
 
 
+  var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6);
+  var asb = new Gtk.Button.with_label ("Start");
+  asb.clicked.connect (() => {
+    model.insert (0, new SampleModelItem (100, 100));
+  });
+  var amb = new Gtk.Button.with_label ("Middle");
+  var aeb = new Gtk.Button.with_label ("End");
+
+  bbox.add (asb);
+  bbox.add (amb);
+  bbox.add (aeb);
+  box.add (bbox);
 
 
   scroller.overlay_scrolling = false;
