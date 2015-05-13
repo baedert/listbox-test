@@ -85,6 +85,9 @@ void main (string[] args) {
   var window = new Gtk.Window ();
   var list_box = new ModelListBox ();
   var scroller = new Gtk.ScrolledWindow (null, null);
+  var n_widgets_label = new Gtk.Label ("");
+  var model_size_label = new Gtk.Label ("");
+
 
   SESSION = new Soup.Session ();
 
@@ -115,7 +118,12 @@ void main (string[] args) {
     //message ("fill func");
 
     sample_widget.label.label = "ZOMG %d".printf (sample.num);
-    sample_widget.set_size_request (-1, sample.size);
+    if (sample.num > 25)
+      sample_widget.set_size_request (-1, 100);
+    else
+      sample_widget.set_size_request (-1, 20);
+
+
     sample_widget.num = sample.num;
     sample_widget.size = (int)model.get_n_items ();
     //sample_widget.set_size_request (-1, 20 + (int)(GLib.Random.next_int () % 200));
@@ -135,16 +143,37 @@ void main (string[] args) {
     //sample_widget.abort_load_image ();
   };
 
-  list_box.notify["max_widgets"].connect (() => {
-    error ("zomg");
-  });
-
-
 
   list_box.set_model (model);
   scroller.add (list_box);
 
-  window.add (scroller);
+  var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
+  var box2 = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
+  n_widgets_label.xalign = 0.0f;
+  box2.add (n_widgets_label);
+  model_size_label.xalign = 1.0f;
+  box2.add (model_size_label);
+  box.add (box2);
+  box.add (scroller);
+
+
+  model_size_label.label = "Items: %u".printf (model.get_n_items ());
+
+  //list_box.notify["max-widgets"].connect (() => {
+    //message ("Max widgets: %u", list_box.max_widgets);
+
+  //});
+
+  list_box.notify["cur-widgets"].connect (() => {
+    //message ("Cur widgets: %u", list_box.cur_widgets);
+    n_widgets_label.label = "Widgets used: %u".printf (list_box.cur_widgets);
+  });
+
+
+
+
+  scroller.overlay_scrolling = false;
+  window.add (box);
   window.resize (400, 500);
   window.show_all ();
   Gtk.main ();
