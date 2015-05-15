@@ -130,13 +130,28 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void items_changed_cb (uint position, uint removed, uint added)
   {
+    message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
+             position, removed, added);
     // XXX use added/removed for the calculation here!
+
+
     if (position >= model_from &&
         position <= model_to) {
       // we need to do extra work to change some visible widgets
+      message ("changed item is visible");
+      if (position == model_from) {
+        model_from ++;
+        model_to ++;
+      }
+
+    } else if (position < model_from) {
+      model_from ++;
+      model_to ++;
     } else {
       // Everything's fine, basically.
+      message ("changed item is invisible");
     }
+    configure_adjustment ();
   }
 
   public override void map ()
@@ -371,33 +386,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void configure_adjustment ()
   {
-    //message ("-- configure_adjustment");
     int top_widgets_height;
     int list_height = estimated_list_height (out top_widgets_height);
+    message ("top widgets height: %d", top_widgets_height);
 
     double new_value = this._vadjustment.value;
     if (this._vadjustment.upper != list_height) {
       int c = bin_y ();
       assert (c <= 0);
-      //message ("top_widgets_height: %d, list_height: %d, model_from: %d", top_widgets_height, list_height,
-               //model_from);
       new_value = top_widgets_height - c; // XXX int?
-      //message ("new_value = %d - %d -> %f", top_widgets_height, c, new_value);
-      //message ("bin_y_diff = %d", top_widgets_height);
       this.bin_y_diff = top_widgets_height;
       assert (-new_value + bin_y_diff <= 0);
     }
 
-    //message ("Value before: %f", this._vadjustment.value);
-    //message ("new value: %f, max: (%d - %d = %d)", new_value, list_height, this.get_allocated_height (),
-             //list_height - this.get_allocated_height ());
     this._vadjustment.configure (new_value,                     // value,
                                  0,                             // lower
                                  list_height,                   // Upper
                                  1,                             // step increment
                                  2,                             // page increment
                                  this.get_allocated_height ()); // page_size
-    //message ("Value after: %f", this._vadjustment.value);
   }
 
   private int get_bin_height ()

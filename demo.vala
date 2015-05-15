@@ -140,6 +140,9 @@ void main (string[] args) {
   });
   var amb = new Gtk.Button.with_label ("Middle");
   var aeb = new Gtk.Button.with_label ("End");
+  aeb.clicked.connect (() => {
+    model.insert (model.get_n_items (), new SampleModelItem (50, 50));
+  });
 
   bbox.add (asb);
   bbox.add (amb);
