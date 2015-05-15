@@ -1,10 +1,10 @@
 
 
-Soup.Session SESSION;
 
 class SampleModelItem : GLib.Object {
   public int num;
   public int size;
+  public bool checked = false;
   public SampleModelItem (int num, int size) {
     this.num = num;
     this.size = size;
@@ -12,19 +12,35 @@ class SampleModelItem : GLib.Object {
 }
 
 class SampleWidget : Gtk.Grid {
-  public Gtk.Image image = new Gtk.Image ();
+  public Gtk.CheckButton checkbox = new Gtk.CheckButton ();
   public Gtk.Label label = new Gtk.Label ("");
   public int num;
   public int size;
+  private unowned SampleModelItem? item;
 
   public SampleWidget () {
-    this.attach (image, 0, 0, 1, 1);
+    this.attach (checkbox, 0, 0, 1, 1);
     this.attach (label, 1, 0, 1, 1);
     var sep = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
     sep.hexpand = true;
     sep.vexpand = true;
     sep.valign = Gtk.Align.END;
     this.attach (sep, 0, 1, 2, 1);
+  }
+
+  private void toggled_callback () {
+    this.item.checked = this.checkbox.active;
+  }
+
+  public void assign (SampleModelItem item) {
+    checkbox.active = item.checked;
+    checkbox.toggled.connect (toggled_callback);
+    this.item = item;
+  }
+
+  public void unassign () {
+    checkbox.toggled.disconnect (toggled_callback);
+    this.item = null;
   }
 
   public override bool draw (Cairo.Context ct) {
@@ -59,7 +75,6 @@ void main (string[] args) {
   var model_size_label = new Gtk.Label ("");
 
 
-  SESSION = new Soup.Session ();
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
 
@@ -81,10 +96,13 @@ void main (string[] args) {
 
     if (widget == null)
       sample_widget = new SampleWidget ();
-
+    else
+      sample_widget.unassign ();
 
     var sample = (SampleModelItem) item;
-    //message ("fill func");
+
+    sample_widget.assign (sample);
+
 
     sample_widget.label.label = "ZOMG %d".printf (sample.num);
     if (sample.num > 25)

@@ -17,8 +17,8 @@ delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
 delegate void WidgetDestroyFunc (Gtk.Widget? widget);
 
 
-Gtk.Label n_widget_label;
-Gtk.Label height_label;
+//Gtk.Label n_widget_label;
+//Gtk.Label height_label;
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -133,6 +133,14 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
              position, removed, added);
     // XXX use added/removed for the calculation here!
+    /* We need to (try to) keep vadjustment.value the same,
+       i.e. if the value was e.g. 0 before and thus displayed
+       the first row, it also has to stay 0 after.
+     */
+
+    int net_size = (int)added - (int)removed;
+    //uint impact = posi
+
 
 
     if (position >= model_from &&
@@ -609,35 +617,35 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 }
 
 // Model stuff {{{
-class ModelItem : GLib.Object {
-  public string name;
-  public int i;
-  public ModelItem (string s, int i) { name = s; this.i = i;}
-}
+//class ModelItem : GLib.Object {
+  //public string name;
+  //public int i;
+  //public ModelItem (string s, int i) { name = s; this.i = i;}
+//}
 
-class ModelWidget : Gtk.Box {
-  private Gtk.Label name_label = new Gtk.Label ("");
-  public  Gtk.Button remove_button = new Gtk.Button.from_icon_name ("list-remove-symbolic");
-  public ModelWidget () {
-    name_label.hexpand = true;
-    this.add (name_label);
-    this.add (remove_button);
-  }
+//class ModelWidget : Gtk.Box {
+  //private Gtk.Label name_label = new Gtk.Label ("");
+  //public  Gtk.Button remove_button = new Gtk.Button.from_icon_name ("list-remove-symbolic");
+  //public ModelWidget () {
+    //name_label.hexpand = true;
+    //this.add (name_label);
+    //this.add (remove_button);
+  //}
 
-  public void set_name (string name) {
-    this.name_label.label = name;
-  }
-  public void set_num (int i) {
-    this.set_size_request (-1, 4);
-  }
-}
+  //public void set_name (string name) {
+    //this.name_label.label = name;
+  //}
+  //public void set_num (int i) {
+    //this.set_size_request (-1, 4);
+  //}
+//}
 
 // }}}
 
 
-void clicked_cb () {
-  message ("foobar");
-}
+//void clicked_cb () {
+  //message ("foobar");
+//}
 
 
 /*
