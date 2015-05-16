@@ -128,6 +128,33 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.queue_resize ();
   }
 
+
+  private void remove_visible_widgets (int pos, int count)
+  {
+    // Remove the specified amount of widgets,
+    // moving all of the below widgets down and
+    // adjusting model_to/model_from accordingly
+
+
+    model_to -= count;
+    int removed_height = 0;
+    int h;
+    for (int i = 0; i < count; i ++) {
+      int index = pos + i;
+      removed_height += get_widget_height (this.widgets.get (index));
+      this.widgets.remove_at (index);
+      //i --;
+    }
+
+    // Move the tail up
+    this.position_children ();
+    //for (int i = 0; i < this.widgets.size - pos; i ++) {
+      //var w = this.widget.get (pos + i);
+
+    //}
+  }
+
+
   private void items_changed_cb (uint position, uint removed, uint added)
   {
     message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
@@ -138,21 +165,31 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
        the first row, it also has to stay 0 after.
      */
 
+
+    /*
+
+       1) `position` is alreay in the viewport:
+           - model_to += net_size
+           - remove `net_size` items, beginning from `position`
+           - add more items at the bottom until bin_window is big enough
+     */
+
     int net_size = (int)added - (int)removed;
-    //uint impact = posi
+    uint impact = (int)position + (int)added - (int)removed;
 
 
 
     if (position >= model_from &&
         position <= model_to) {
       // we need to do extra work to change some visible widgets
-      message ("changed item is visible");
-      if (position == model_from) {
-        model_from ++;
-        model_to ++;
-      }
+
+      int widget_pos = (int)position - model_from;
+
+      this.remove_visible_widgets (widget_pos, (int)removed);
+      this.ensure_visible_widgets ();
 
     } else if (position < model_from) {
+      // Can still reach into the viewport
       model_from ++;
       model_to ++;
     } else {
@@ -396,7 +433,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   {
     int top_widgets_height;
     int list_height = estimated_list_height (out top_widgets_height);
-    message ("top widgets height: %d", top_widgets_height);
 
     double new_value = this._vadjustment.value;
     if (this._vadjustment.upper != list_height) {

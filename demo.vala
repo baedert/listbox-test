@@ -162,9 +162,21 @@ void main (string[] args) {
     model.insert (model.get_n_items (), new SampleModelItem (50, 50));
   });
 
+  var rsb = new Gtk.Button.with_label ("Remove selected");
+  rsb.clicked.connect (() => {
+    for (int i = 0; i < model.get_n_items (); i ++) {
+      var item = (SampleModelItem)model.get_object (i);
+      if (item.checked) {
+        model.remove (i);
+        i --;
+      }
+    }
+  });
+
   bbox.add (asb);
   bbox.add (amb);
   bbox.add (aeb);
+  bbox.add (rsb);
   box.add (bbox);
 
 
