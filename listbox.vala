@@ -186,6 +186,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       int widget_pos = (int)position - model_from;
 
       this.remove_visible_widgets (widget_pos, (int)removed);
+      this.update_bin_window ();
+
       this.ensure_visible_widgets ();
 
     } else if (position < model_from) {
@@ -597,7 +599,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       bin_height += min;
     }
 
-
     // remove widgets
     for (int i = this.widgets.size - 1; i >= 0; i --) {
       Gtk.Allocation alloc;
@@ -612,7 +613,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       } else
         break;
     }
-
     // }}}
 
     configure_adjustment ();
