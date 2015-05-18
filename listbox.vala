@@ -134,8 +134,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // Remove the specified amount of widgets,
     // moving all of the below widgets down and
     // adjusting model_to/model_from accordingly
-
-
     model_to -= count;
     int removed_height = 0;
     int h;
@@ -148,10 +146,23 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     // Move the tail up
     this.position_children ();
-    //for (int i = 0; i < this.widgets.size - pos; i ++) {
-      //var w = this.widget.get (pos + i);
+  }
 
-    //}
+  public void insert_visible_widgets (int pos, int count)
+  {
+    int added_height = 0;
+    // We need to kill all of the widgets below the inserted ones,
+    // since their index gets invalidated by the insertion.
+
+    this.model_to -= this.widgets.size - pos;
+
+    // delete all after the insertion point
+    for (int i = pos; i < this.widgets.size; i ++) {
+      this.remove_child_internal (this.widgets.get (pos));
+      i --;
+    }
+    this.position_children ();
+
   }
 
 
@@ -186,8 +197,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       int widget_pos = (int)position - model_from;
 
       this.remove_visible_widgets (widget_pos, (int)removed);
+      this.insert_visible_widgets (widget_pos, (int)added);
+      // XXX We need to call update_bin_window just to make
+      //     ensure_visible_widgets actually add widgets at the end
+      //     of the list (see the condition there). Maybe just change
+      //    the condition?
       this.update_bin_window ();
-
       this.ensure_visible_widgets ();
 
     } else if (position < model_from) {
@@ -651,149 +666,3 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
 
 }
-
-// Model stuff {{{
-//class ModelItem : GLib.Object {
-  //public string name;
-  //public int i;
-  //public ModelItem (string s, int i) { name = s; this.i = i;}
-//}
-
-//class ModelWidget : Gtk.Box {
-  //private Gtk.Label name_label = new Gtk.Label ("");
-  //public  Gtk.Button remove_button = new Gtk.Button.from_icon_name ("list-remove-symbolic");
-  //public ModelWidget () {
-    //name_label.hexpand = true;
-    //this.add (name_label);
-    //this.add (remove_button);
-  //}
-
-  //public void set_name (string name) {
-    //this.name_label.label = name;
-  //}
-  //public void set_num (int i) {
-    //this.set_size_request (-1, 4);
-  //}
-//}
-
-// }}}
-
-
-//void clicked_cb () {
-  //message ("foobar");
-//}
-
-
-/*
-
-void main (string[] args) {
-  Gtk.init (ref args);
-  var w = new Gtk.Window ();
-  w.delete_event.connect (() => {Gtk.main_quit (); return false;});
-  var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
-  var l = new ModelListBox ();
-  l.vexpand = true;
-
-
-  var store = new GLib.ListStore (typeof (ModelItem));
-  n_widget_label = new Gtk.Label ("Foobar");
-  height_label = new Gtk.Label ("zomg model");
-
-
-  l.fill_func = (item, old) => {
-    assert (item != null);
-
-    ModelWidget b = (ModelWidget)old;
-    if (old == null)
-      b = new ModelWidget ();
-
-    b.set_name (((ModelItem)item).name);
-    b.set_num (((ModelItem)item).i);
-    b.remove_button.clicked.connect (clicked_cb);
-    if (((ModelItem)item).i == store.get_n_items () -1) {
-      b.set_size_request (-1, 500);
-    }
-    b.show_all ();
-    return b;
-  };
-
-  l.destroy_func = (_w) => {
-    var b = (ModelWidget) _w;
-
-    b.remove_button.clicked.disconnect (clicked_cb);
-  };
-
-  for (int i = 0; i < 20; i ++)
-  //for (int i = 0; i < 200; i ++)
-    store.append (new ModelItem ("NUMBER " + i.to_string (), i));
-
-
-  l.set_model (store);
-
-  var scroller = new Gtk.ScrolledWindow (null, null);
-
-  // Add widget button {{{
-
-  var hw = new Gtk.HeaderBar ();
-  hw.show_close_button = true;
-  w.set_titlebar (hw);
-
-  var awb = new Gtk.Button.with_label ("Add widget");
-  awb.clicked.connect (() => {
-    //store.append (new ModelItem ("one more"));
-                       assert (false);
-  });
-
-  box.add (awb);
-  box.add (n_widget_label);
-  box.add (height_label);
-
-  var scb = new Gtk.Button.with_label ("Scroll up");
-  scb.clicked.connect (() => {
-    //scroller.get_vadjustment ().value += 100;
-    scroller.get_vadjustment ().value = 0;
-  });
-
-  box.pack_end (scb, false, false);
-
-  var sub = new Gtk.Button.with_label ("Scroll down");
-  sub.clicked.connect (() => {
-    scroller.get_vadjustment ().value = scroller.get_vadjustment ().upper -
-                                        scroller.get_vadjustment ().page_size;
-  });
-  box.pack_end (sub, false, false);
-
-
-  var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-  bbox.halign = Gtk.Align.CENTER;
-  bbox.get_style_context ().add_class ("linked");
-  var up = new Gtk.Button.from_icon_name ("pan-up-symbolic");
-  up.clicked.connect (() => {
-    scroller.get_vadjustment ().value --;
-  });
-  bbox.pack_start (up, false, true);
-
-  var down= new Gtk.Button.from_icon_name ("pan-down-symbolic");
-  down.clicked.connect (() => {
-    scroller.get_vadjustment ().value ++;
-  });
-  bbox.pack_start (down, false, true);
-
-  box.pack_end (bbox, false, false);
-
-
-
-  // }}}
-
-
-  scroller.vscrollbar_policy = (Gtk.PolicyType.ALWAYS);
-  scroller.overlay_scrolling = false;
-  scroller.add (l);
-  box.add (scroller);
-  w.add (box);
-  w.show_all ();
-  w.resize (400, 500);
-  Gtk.main ();
-}
-
-*/
