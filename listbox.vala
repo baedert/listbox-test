@@ -186,6 +186,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
       int widget_pos = (int)position - model_from;
 
+      // XXX These 2 can have special measures for cases,
+      //     e.g. the 2nd call might not have to kill all the widgets
       this.remove_visible_widgets (widget_pos, (int)removed);
       this.insert_visible_widgets (widget_pos, (int)added);
       // XXX We need to call update_bin_window just to make
@@ -395,7 +397,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         average_widget_height += get_widget_height (w);
       }
       average_widget_height /= this.widgets.size;
-    }
+    } else
+      average_widget_height = 1;
 
     return average_widget_height;
   }
@@ -429,6 +432,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (exact_height >= 0);
 
     top_part = top_widgets * widget_height;
+
+    assert (top_part >= 0);
 
     return exact_height +
            top_widgets * widget_height +
@@ -503,7 +508,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (bin_y () + bin_height < 0 ||
         bin_y () > widget_alloc.height) {
       int estimated_widget_height = estimated_widget_height ();
-      assert (estimated_widget_height > 0);
+      //if (estimated_widget_height <= 0)
+        //message ("F: %d", estimated_widget_height);
+      assert (estimated_widget_height >= 0);
       int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
       assert (top_widget_index >= 0);
 
@@ -640,6 +647,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       assert (this.model_from == 0);
       assert (bin_y () == 0);
     }
+
+
+    int h;
+    this.bin_window.get_geometry (null, null, null, out h);
+    assert (h == this.get_bin_height ());
   }
 
   private void update_bin_window ()
