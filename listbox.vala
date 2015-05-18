@@ -17,9 +17,6 @@ delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
 delegate void WidgetDestroyFunc (Gtk.Widget? widget);
 
 
-//Gtk.Label n_widget_label;
-//Gtk.Label height_label;
-
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
   private Gee.ArrayList<Gtk.Widget> old_widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -207,8 +204,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     } else if (position < model_from) {
       // Can still reach into the viewport
-      model_from ++;
-      model_to ++;
+      model_from += net_size;
+      model_to   += net_size;
     } else {
       // Everything's fine, basically.
       message ("changed item is invisible");
