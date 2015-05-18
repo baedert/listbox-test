@@ -2,11 +2,10 @@
 /*
    == TODO LIST ==
    - Test complex widgets!
-   - add rows at runtime (3 cases)
-   - remove rows at runtime (3 cases or 2?)
    - Revealer in Widget (Should work already?)
    - value animation is broken if upper changes during it.
      Might need changes in gtkadjustment.c (_scroll_to_value)
+   - Port to C
  */
 
 
