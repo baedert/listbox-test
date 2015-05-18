@@ -118,10 +118,6 @@ void main (string[] args) {
     return sample_widget;
   };
 
-  list_box.destroy_func = (widget) => {
-  };
-
-
   list_box.set_model (model);
   scroller.add (list_box);
 

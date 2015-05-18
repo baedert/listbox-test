@@ -5,16 +5,13 @@
    - add rows at runtime (3 cases)
    - remove rows at runtime (3 cases or 2?)
    - Revealer in Widget (Should work already?)
-   - ModelListBox nicht in ScrolledWindow
    - value animation is broken if upper changes during it.
      Might need changes in gtkadjustment.c (_scroll_to_value)
-   - remove WidgetDestroyFunc again?
  */
 
 
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
-delegate void WidgetDestroyFunc (Gtk.Widget? widget);
 
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
@@ -23,7 +20,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gdk.Window bin_window;
   private GLib.ListModel model;
   public WidgetFillFunc fill_func;
-  public WidgetDestroyFunc destroy_func;
   private int bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 
   private int _model_from = 0;
@@ -133,7 +129,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // adjusting model_to/model_from accordingly
     model_to -= count;
     int removed_height = 0;
-    int h;
     for (int i = 0; i < count; i ++) {
       int index = pos + i;
       removed_height += get_widget_height (this.widgets.get (index));
@@ -147,7 +142,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   public void insert_visible_widgets (int pos, int count)
   {
-    int added_height = 0;
     // We need to kill all of the widgets below the inserted ones,
     // since their index gets invalidated by the insertion.
 
@@ -235,7 +229,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (widget.get_parent_window () == this.bin_window);
     assert (this.widgets.contains (widget));
 
-    this.destroy_func (widget);
     this.widgets.remove (widget);
     widget.unparent ();
     this.old_widgets.add (widget);
