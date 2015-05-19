@@ -19,7 +19,12 @@ class SampleWidget : Gtk.Grid {
   private unowned SampleModelItem? item;
 
   public SampleWidget () {
+    checkbox.halign = Gtk.Align.START;
+    checkbox.hexpand = false;
     this.attach (checkbox, 0, 0, 1, 1);
+    label.hexpand = true;
+    label.margin_left = 12;
+    label.halign = Gtk.Align.START;
     this.attach (label, 1, 0, 1, 1);
     var sep = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
     sep.hexpand = true;
@@ -73,19 +78,14 @@ void main (string[] args) {
   var scroller = new Gtk.ScrolledWindow (null, null);
   var n_widgets_label = new Gtk.Label ("");
   var model_size_label = new Gtk.Label ("");
-
-
+  var height_label = new Gtk.Label ("Estimated height: 1337");
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
-
-  //model.append (new SampleModelItem (0, 2));
 
   //for (int i = 0; i < 1000000; i ++)
   for (int i = 0; i < 100; i ++)
     model.append (new SampleModelItem (i, 20 + (i * 10)));
 
-
-  //model.append (new SampleModelItem (59, 2));
 
 
   //int i = 0;
@@ -123,14 +123,19 @@ void main (string[] args) {
 
   var items_label = new Gtk.Label ("");
   var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
-  var box2 = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-  n_widgets_label.xalign = 0.0f;
+  var box2 = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
   box2.add (n_widgets_label);
-  model_size_label.xalign = 1.0f;
   box2.add (model_size_label);
   box2.add (items_label);
+  box2.add (height_label);
   box.add (box2);
   box.add (scroller);
+
+
+  scroller.get_vadjustment ().value_changed.connect (() => {
+    height_label.label = "Estimated height: %d".printf (list_box.estimated_height);
+  });
+
 
 
   model_size_label.label = "Items: %u".printf (model.get_n_items ());

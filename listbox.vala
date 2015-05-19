@@ -94,6 +94,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
   }
 
+  public int estimated_height {
+    get {
+      return estimated_list_height ();
+    }
+  }
+
   /* }}} */
 
 
