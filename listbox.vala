@@ -2,9 +2,12 @@
 /*
    == TODO LIST ==
    - Test complex widgets!
+   - Use GtkListBoxRow
+   - implement hover state
    - Revealer in Widget (Should work already?)
    - value animation is broken if upper changes during it.
      Might need changes in gtkadjustment.c (_scroll_to_value)
+     -> loading new content when scrolling to bottom breaks it :/
    - Port to C
  */
 
@@ -26,6 +29,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   // We need this in case this,widgets is empty
   // but we still need to estimated their height
   private int last_valid_widget_height = 1;
+  private Gtk.Widget? hovered_row;
 
   /* GtkScrollable properties  {{{ */
   private Gtk.Adjustment _vadjustment;
@@ -212,7 +216,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       model_to   += net_size;
     } else {
       // Everything's fine, basically.
-      message ("changed item is invisible");
+      //message ("changed item is invisible");
     }
     configure_adjustment ();
   }
@@ -257,6 +261,26 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   }
 
+  private Gtk.Widget? get_row_at_y (int y)
+  {
+    assert (y >= 0);
+    assert (bin_y () + y <= this.get_allocated_height ());
+
+    Gtk.Allocation alloc;
+    foreach (var w in this.widgets) {
+      // We actually need to use the allocated height here
+      // since rows could be invisible (?)
+      w.get_allocation (out alloc);
+      if (alloc.y < y && alloc.y + alloc.height > y) {
+        return w;
+      }
+    }
+
+    // no hovered widget found (e.g. if the parent GtkScrolledWindow
+    // bigger than the list itself with all its items)
+    return null;
+  }
+
   /* GtkContainer API {{{ */
   public override void add (Gtk.Widget child) { assert (false); }
 
@@ -274,10 +298,28 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   public override GLib.Type child_type () {
     return typeof (Gtk.Widget);
+    //return typeof (Gtk.ListBoxRow);
   }
   /* }}} */
 
   /* GtkWidget API  {{{ */
+  public override bool motion_notify_event (Gdk.EventMotion event)
+  {
+    Gtk.Widget? row;
+
+    if (this.hovered_row != null) {
+      this.hovered_row.unset_state_flags (Gtk.StateFlags.PRELIGHT);
+    }
+
+    if ((row = this.get_row_at_y ((int)event.y)) != null) {
+      this.hovered_row = row;
+      this.hovered_row.set_state_flags (Gtk.StateFlags.PRELIGHT, false);
+    }
+
+    return false;
+  }
+
+
   public override bool draw (Cairo.Context ct)
   {
     // draw bin_window
@@ -552,7 +594,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       while (cur_height < this.get_allocated_height () &&
              model_to < (int)this.model.get_n_items () - 1) {
         model_to ++;
-        //message ("model_to:
         assert (model_to < this.model.get_n_items ());
         Gtk.Widget new_widget = fill_func (model.get_object (model_to),
                                            get_old_widget ());
@@ -584,7 +625,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this.insert_child_internal (new_widget, 0);
       int min = get_widget_height (new_widget);
       this.bin_y_diff -= min;
-      //message ("bin_y_diff -= %d -> %d", min, bin_y_diff);
       child_y_diff += min;
     }
 
@@ -603,7 +643,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         // Remove widget, resize and move bin_window
         bin_height -= w_height;
         this.bin_y_diff += w_height;
-        //message ("Removing widget with index %d: bin_y_diff += %d -> %d", i, w_height, bin_y_diff);
         child_y_diff -= alloc.height;
         this.remove_child_internal (w);
         model_from ++;
@@ -650,7 +689,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     this.update_bin_window ();
     this.position_children ();
 
-    //assert (bin_y () <= 0);
     assert (this.widgets.size == (model_to - model_from + 1));
     assert (model_to <= model.get_n_items () -1);
     assert (model_to >= 0);
@@ -659,8 +697,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (this.bin_y_diff >= 0);
     if (this._vadjustment.value == 0) {
       assert (this.bin_y_diff == 0);
-      //if (model_from != 0)
-        //message ("model_from: %d", model_from);
       assert (this.model_from == 0);
       assert (bin_y () == 0);
     }

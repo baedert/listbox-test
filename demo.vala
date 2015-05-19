@@ -11,9 +11,10 @@ class SampleModelItem : GLib.Object {
   }
 }
 
-class SampleWidget : Gtk.Grid {
+class SampleWidget : Gtk.ListBoxRow {
   public Gtk.CheckButton checkbox = new Gtk.CheckButton ();
   public Gtk.Label label = new Gtk.Label ("");
+  private Gtk.Grid grid = new Gtk.Grid ();
   public int num;
   public int size;
   private unowned SampleModelItem? item;
@@ -21,16 +22,18 @@ class SampleWidget : Gtk.Grid {
   public SampleWidget () {
     checkbox.halign = Gtk.Align.START;
     checkbox.hexpand = false;
-    this.attach (checkbox, 0, 0, 1, 1);
+    grid.attach (checkbox, 0, 0, 1, 1);
     label.hexpand = true;
     label.margin_left = 12;
     label.halign = Gtk.Align.START;
-    this.attach (label, 1, 0, 1, 1);
+    grid.attach (label, 1, 0, 1, 1);
     var sep = new Gtk.Separator (Gtk.Orientation.HORIZONTAL);
     sep.hexpand = true;
     sep.vexpand = true;
     sep.valign = Gtk.Align.END;
-    this.attach (sep, 0, 1, 2, 1);
+    grid.attach (sep, 0, 1, 2, 1);
+
+    this.add (grid);
   }
 
   private void toggled_callback () {
@@ -48,25 +51,25 @@ class SampleWidget : Gtk.Grid {
     this.item = null;
   }
 
-  public override bool draw (Cairo.Context ct) {
+  //public override bool draw (Cairo.Context ct) {
 
-    float f = (float) num  /  (float) size;
+    //float f = (float) num  /  (float) size;
 
-    ct.set_source_rgba (1 - f, 0.5 + f, f, 1.0);
-    ct.rectangle (0, 0,
-                  get_allocated_width (),
-                  get_allocated_height ());
-    ct.fill ();
-
-
-    ct.set_source_rgba (0, 0, 0, 1);
-    ct.move_to (0, get_allocated_height ());
-    ct.line_to (get_allocated_width (), get_allocated_height ());
-    ct.stroke ();
+    //ct.set_source_rgba (1 - f, 0.5 + f, f, 1.0);
+    //ct.rectangle (0, 0,
+                  //get_allocated_width (),
+                  //get_allocated_height ());
+    //ct.fill ();
 
 
-    return base.draw (ct);
-  }
+    //ct.set_source_rgba (0, 0, 0, 1);
+    //ct.move_to (0, get_allocated_height ());
+    //ct.line_to (get_allocated_width (), get_allocated_height ());
+    //ct.stroke ();
+
+
+    //return base.draw (ct);
+  //}
 
 }
 
@@ -82,8 +85,9 @@ void main (string[] args) {
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
 
-  //for (int i = 0; i < 1000000; i ++)
-  for (int i = 0; i < 100; i ++)
+  for (int i = 0; i < 1000; i ++)
+  //for (int i = 0; i < 10000000; i ++)
+  //for (int i = 0; i < 100; i ++)
     model.append (new SampleModelItem (i, 20 + (i * 10)));
 
 
