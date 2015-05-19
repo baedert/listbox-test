@@ -23,6 +23,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private int _model_from = 0;
   private int _model_to   = -1;
+  // We need this in case this,widgets is empty
+  // but we still need to estimated their height
+  private int last_valid_widget_height = 1;
 
   /* GtkScrollable properties  {{{ */
   private Gtk.Adjustment _vadjustment;
@@ -376,7 +379,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
-  private int get_widget_height (Gtk.Widget w) {
+  private inline int get_widget_height (Gtk.Widget w)
+  {
     int min, nat;
     w.get_preferred_height_for_width (this.get_allocated_width (),
                                       out min,
@@ -397,8 +401,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         average_widget_height += get_widget_height (w);
       }
       average_widget_height /= this.widgets.size;
+
+      this.last_valid_widget_height = average_widget_height;
     } else
-      average_widget_height = 1;
+      average_widget_height = this.last_valid_widget_height;
 
     return average_widget_height;
   }
@@ -523,10 +529,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       //message ("top_widget_index: %d", top_widget_index);
       this.model_from = top_widget_index;// - 1;
       this.model_to  = model_from - 1;
+
+      //if (model_to >= model.get_n_items ()) {
+        //message ("model_from: %d", model_from);
+        //message ("model_to: %d", model_to);
+      //}
       //message ("model_to: %d, model_from: %d", model_to, model_from);
       assert (model_from >= 0);
       assert (model_from < model.get_n_items ());
-      assert (model_to < model.get_n_items ());
+      assert (model_to < (int)model.get_n_items ());
 
 
       // Fill the list again
@@ -651,6 +662,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     int h;
     this.bin_window.get_geometry (null, null, null, out h);
+    if (h != get_bin_height ()) {
+      message ("%d != %d", h, this.get_bin_height ());
+    }
     assert (h == this.get_bin_height ());
   }
 
