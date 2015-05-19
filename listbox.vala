@@ -1,10 +1,11 @@
 
 /*
    == TODO LIST ==
+   - remove last row(s) -> checkbox doesn't work anymore
    - Test complex widgets!
    - Use GtkListBoxRow
-   - implement hover state
    - Revealer in Widget (Should work already?)
+   - test invisible widgets (this will probably fail)
    - value animation is broken if upper changes during it.
      Might need changes in gtkadjustment.c (_scroll_to_value)
      -> loading new content when scrolling to bottom breaks it :/
@@ -26,7 +27,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private int _model_from = 0;
   private int _model_to   = -1;
-  // We need this in case this,widgets is empty
+  // We need this in case this.widgets is empty
   // but we still need to estimated their height
   private int last_valid_widget_height = 1;
   private Gtk.Widget? hovered_row;
@@ -316,6 +317,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this.hovered_row.set_state_flags (Gtk.StateFlags.PRELIGHT, false);
     }
 
+    return false;
+  }
+
+  public override bool leave_notify_event (Gdk.EventCrossing event)
+  {
+    if (this.hovered_row != null) {
+      this.hovered_row.unset_state_flags (Gtk.StateFlags.PRELIGHT);
+      this.hovered_row = null;
+    }
     return false;
   }
 
