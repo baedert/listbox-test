@@ -544,7 +544,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       int cur_height = 0;
       int widgets_added = 0;
       while (cur_height < this.get_allocated_height () &&
-             model_to < this.model.get_n_items () - 1) {
+             model_to < (int)this.model.get_n_items () - 1) {
         model_to ++;
         //message ("model_to:
         assert (model_to < this.model.get_n_items ());
