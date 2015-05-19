@@ -572,8 +572,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (bin_y () + bin_height < 0 ||
         bin_y () > widget_alloc.height) {
       int estimated_widget_height = estimated_widget_height ();
-      //if (estimated_widget_height <= 0)
-        //message ("F: %d", estimated_widget_height);
       assert (estimated_widget_height >= 0);
       int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
       assert (top_widget_index >= 0);
@@ -584,15 +582,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
       remove_all_widgets ();
 
-      //message ("top_widget_index: %d", top_widget_index);
       this.model_from = top_widget_index;// - 1;
       this.model_to  = model_from - 1;
 
-      //if (model_to >= model.get_n_items ()) {
-        //message ("model_from: %d", model_from);
-        //message ("model_to: %d", model_to);
-      //}
-      //message ("model_to: %d, model_from: %d", model_to, model_from);
       assert (model_from >= 0);
       assert (model_from < model.get_n_items ());
       assert (model_to < (int)model.get_n_items ());
