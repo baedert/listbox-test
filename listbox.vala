@@ -637,10 +637,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this.bin_y_diff -= min;
       child_y_diff += min;
     }
-
-    if (bin_y () > 0) {
-      this.bin_y_diff = (int)this._vadjustment.value;
-    }
     assert (bin_y () <= 0);
 
 
