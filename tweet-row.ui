@@ -103,7 +103,7 @@
                 <property name="visible">true</property>
                 <property name="relief">none</property>
                 <property name="valign">center</property>
-                <!--<property name="menu_model">actions_menu</property>-->
+                <property name="menu_model">actions_menu</property>
                 <style>
                   <class name="dim-label" />
                   <class name="image-button" />
@@ -154,6 +154,8 @@
                 <property name="valign">baseline</property>
                 <property name="margin_top">4</property>
                 <property name="margin_bottom">1</property>
+                <property name="use_markup">true</property>
+                <property name="label">&lt;b&gt;Foobar&lt;/b&gt;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -174,6 +176,7 @@
                 <property name="hexpand">True</property>
                 <property name="xalign">0</property>
                 <property name="ellipsize">end</property>
+                <property name="label">@baedert</property>
                 <style>
                   <class name="dim-label"/>
                 </style>
