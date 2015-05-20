@@ -109,7 +109,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   /* }}} */
 
 
-  public ModelListBox () {
+  construct {
     this.get_style_context ().add_class ("list");
   }
 
@@ -337,17 +337,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   public override bool draw (Cairo.Context ct)
   {
-    // draw bin_window
-    int x, y, w, h;
-    this.bin_window.get_geometry (out x, out y, out w, out h);
-    ct.set_source_rgba (1, 1, 1, 1);
-    ct.rectangle (x, y, w, h);
-    ct.fill ();
+    var sc = this.get_style_context ();
+    Gtk.Allocation alloc;
+    this.get_allocation (out alloc);
 
+    sc.render_background (ct, 0, 0, alloc.width, alloc.height);
+    sc.render_frame (ct, 0, 0, alloc.width, alloc.height);
 
-    //Gtk.Allocation alloc;
-    //this.get_allocation (out alloc);
-    //this.get_style_context ().render_background (ct, alloc.x, alloc.y, alloc.width, alloc.height);
 
     if (Gtk.cairo_should_draw_window (ct, this.bin_window)) {
       foreach (var child in widgets) {
@@ -372,7 +368,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
     child_allocation.x = 0;
-    child_allocation.width = allocation.width;
+    if (allocation.width > 0)
+      child_allocation.width = allocation.width;
+    else
+      child_allocation.width = 1;
 
     foreach (Gtk.Widget child in this.widgets) {
       child.get_preferred_height_for_width (this.get_allocated_width (),
@@ -559,7 +558,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                  this.get_allocated_height ()); // page_size
   }
 
-  private int get_bin_height ()
+  private inline int get_bin_height ()
   {
     int h = 0;
     int min;

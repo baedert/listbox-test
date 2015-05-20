@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="DemoWindow" parent="GtkWindow">
+    <property name="visible">false</property>
+    <property name="default_width">800</property>
+    <property name="default_height">600</property>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">true</property>
+        <property name="orientation">horizontal</property>
+
+        <child>
+          <object class="GtkBox">
+            <property name="visible">true</property>
+            <property name="orientation">vertical</property>
+
+
+            <child>
+              <object class="GtkGrid">
+                <property name="visible">true</property>
+                <property name="row_spacing">3</property>
+                <property name="column_spacing">6</property>
+                <property name="margin">6</property>
+                <property name="column_homogeneous">true</property>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">true</property>
+                    <property name="label">Widgets used</property>
+                    <property name="halign">end</property>
+                    <style>
+                      <class name="dim-label" />
+                    </style>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="used_widgets_label">
+                    <property name="visible">true</property>
+                    <property name="halign">start</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">true</property>
+                    <property name="label">Items</property>
+                    <property name="halign">end</property>
+                    <style>
+                      <class name="dim-label" />
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="model_size_label">
+                    <property name="visible">true</property>
+                    <property name="halign">start</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">true</property>
+                    <property name="label">Visible Items</property>
+                    <property name="halign">end</property>
+                    <style>
+                      <class name="dim-label" />
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="visible_items_label">
+                    <property name="visible">true</property>
+                    <property name="halign">start</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">true</property>
+                    <property name="label">Estimated height</property>
+                    <property name="halign">end</property>
+                    <style>
+                      <class name="dim-label" />
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="estimated_height_label">
+                    <property name="visible">true</property>
+                    <property name="halign">start</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+
+
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="visible">true</property>
+                <property name="orientation">horizontal</property>
+
+                <child>
+                  <object class="GtkScrolledWindow" id="scroller">
+                    <property name="visible">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="hexpand">true</property>
+                    <child>
+                      <object class="ModelListBox" id="list_box">
+                        <property name="visible">true</property>
+
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+
+                <child>
+                  <object class="GtkGrid">
+                    <property name="visible">true</property>
+                    <property name="row_spacing">12</property>
+                    <property name="column_spacing">6</property>
+                    <property name="margin">6</property>
+
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">true</property>
+                        <property name="label">Remove Items</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">true</property>
+                        <property name="label">Remove Selected</property>
+                        <signal name="clicked" handler="remove_selected_cb" />
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">1</property>
+                      </packing>
+                    </child>
+
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">true</property>
+                        <property name="label">Remove All</property>
+                        <signal name="clicked" handler="remove_all_cb" />
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">1</property>
+                      </packing>
+                    </child>
+
+
+
+                  </object>
+                </child>
+
+
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+</interface>

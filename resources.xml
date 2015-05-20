@@ -1,0 +1,7 @@
+<gresources>
+  <gresource prefix="/org/baedert/listbox">
+    <file compressed="true" preprocess="xml-stripblanks">demo.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">row.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">tweet-row.ui</file>
+  </gresource>
+</gresources>
