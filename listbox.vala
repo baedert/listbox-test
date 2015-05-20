@@ -3,6 +3,7 @@
    == TODO LIST ==
    - remove last row(s) -> checkbox doesn't work anymore
    - Test complex widgets!
+   - Fix all XXX
    - Use GtkListBoxRow
    - Revealer in Widget (Should work already?)
    - test invisible widgets (this will probably fail)
@@ -452,7 +453,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private int estimated_widget_height ()
   {
 
-    int average_widget_height = 0; // XXX This should be 0
+    int average_widget_height = 0;
 
     if (this.widgets.size > 0) {
       foreach (var w in this.widgets) {
@@ -487,6 +488,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (top_widgets >= 0);
     assert (bottom_widgets >= 0);
 
+
+    // XXX all the get_preferred_width_for height calls might be very expensive?
     int exact_height = 0;
     foreach (var w in this.widgets) {
       int h = get_widget_height (w);
