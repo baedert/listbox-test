@@ -34,14 +34,14 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gtk.Widget? hovered_row;
 
   /* GtkScrollable properties  {{{ */
-  private Gtk.Adjustment _vadjustment;
-  public Gtk.Adjustment vadjustment {
+  private Gtk.Adjustment? _vadjustment;
+  public Gtk.Adjustment? vadjustment {
     set {
       this._vadjustment = value;
       if (this._vadjustment != null) {
         this._vadjustment.value_changed.connect (ensure_visible_widgets);
-        configure_adjustment ();
       }
+      configure_adjustment ();
     }
     get {
       return this._vadjustment;
@@ -220,7 +220,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       // Everything's fine, basically.
       //message ("changed item is invisible");
     }
-    configure_adjustment ();
+    if (this._vadjustment == null)
+      this.queue_resize ();
+    else
+      configure_adjustment ();
+
   }
 
   public override void map ()
@@ -362,7 +366,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     this.get_allocation (out allocation);
 
-    int y = allocation.y;
+    int y = 0;
+    if (this._vadjustment != null)
+      y = allocation.y;
+
+
     child_allocation.x = 0;
     child_allocation.width = allocation.width;
 
@@ -433,6 +441,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     foreach (var w in widgets)
       w.set_parent_window (this.bin_window);
+  }
+
+  public override void get_preferred_height (out int minimal,
+                                             out int natural)
+  {
+    if (this._vadjustment == null) {
+      int h = 0;
+      foreach (var w in widgets)
+        h += this.get_widget_height (w);
+
+      minimal = h;
+      natural = h;
+
+    } else {
+      // Doesn't matter, we're in a scrolledwindow anyway.
+      minimal = 0;
+      natural = 0;
+    }
   }
   /* }}} */
 
@@ -509,6 +535,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
   private void configure_adjustment ()
   {
+    if (this._vadjustment == null)
+      return;
+
+
     int top_widgets_height;
     int list_height = estimated_list_height (out top_widgets_height);
 
@@ -548,7 +578,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
    */
   private int bin_y ()
   {
-    int p = -(int)this._vadjustment.value + this.bin_y_diff;
+    int v = 0;
+    if (this._vadjustment != null)
+      v = - (int)this._vadjustment.value;
+    int p = v + this.bin_y_diff;
     return p;
   }
 
@@ -557,6 +590,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     if (!this.get_mapped () ||
         this.model == null)
       return;
+
+    if (this._vadjustment == null) {
+      if (this.widgets.size < (int)this.model.get_n_items ()) {
+        while (model_to < (int)this.model.get_n_items () - 1) {
+          model_to ++;
+          Gtk.Widget new_widget = fill_func (model.get_object (model_to),
+                                             get_old_widget ());
+          this.insert_child_internal (new_widget, model_to);
+        }
+      }
+
+      assert (model_from == 0);
+      assert (model_to == this.model.get_n_items () - 1);
+      return;
+    }
 
 
     int bin_height;
@@ -696,7 +744,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     assert (model_from >= 0);
     assert (model_from <= model.get_n_items () - 1);
     assert (this.bin_y_diff >= 0);
-    if (this._vadjustment.value == 0) {
+    if (this._vadjustment != null && this._vadjustment.value == 0) {
       assert (this.bin_y_diff == 0);
       assert (this.model_from == 0);
       assert (bin_y () == 0);

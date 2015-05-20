@@ -85,9 +85,9 @@ void main (string[] args) {
 
   var model = new GLib.ListStore (typeof (SampleModelItem));
 
-  for (int i = 0; i < 1000; i ++)
+  //for (int i = 0; i < 1000; i ++)
   //for (int i = 0; i < 10000000; i ++)
-  //for (int i = 0; i < 100; i ++)
+  for (int i = 0; i < 10; i ++)
     model.append (new SampleModelItem (i, 20 + (i * 10)));
 
 
@@ -123,7 +123,7 @@ void main (string[] args) {
   };
 
   list_box.set_model (model);
-  scroller.add (list_box);
+  //scroller.add (list_box);
 
   var items_label = new Gtk.Label ("");
   var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
@@ -133,7 +133,9 @@ void main (string[] args) {
   box2.add (items_label);
   box2.add (height_label);
   box.add (box2);
-  box.add (scroller);
+  //box.add (scroller);
+  list_box.vexpand = true;
+  box.add (list_box);
 
 
   scroller.get_vadjustment ().value_changed.connect (() => {
