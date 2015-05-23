@@ -11,42 +11,22 @@ class SampleModelItem : GLib.Object {
   }
 }
 
-[GtkTemplate (ui = "/org/baedert/listbox/row.ui")]
-class SampleWidget : Gtk.ListBoxRow {
-  [GtkChild]
-  private Gtk.Label label;
-  [GtkChild]
-  private Gtk.CheckButton checkbox;
-  public int num;
-  public int size;
-  private unowned SampleModelItem? item;
-
-  public SampleWidget () {
-  }
-
-  private void toggled_callback () {
-    this.item.checked = this.checkbox.active;
-  }
-
-  public void assign (SampleModelItem item) {
-    label.label = "Item %'d".printf (item.num);
-    this.item = item;
-  }
-
-  public void unassign () {
-    checkbox.toggled.disconnect (toggled_callback);
-    this.item = null;
-  }
-}
-
 [GtkTemplate (ui = "/org/baedert/listbox/tweet-row.ui")]
 class TweetRow : Gtk.ListBoxRow {
   [GtkChild]
   private Gtk.Label text_label;
+  [GtkChild]
+  private Gtk.Label time_delta_label;
+  public int num = 0;
 
   public TweetRow () {
     text_label.label = "asdkfjsdahfsdakjf sdafhsda fgsdag fhgsajkfhsga dhfsga df <a href=\"foobar\">hihi</a>
       asdfsadfsadf asjkdf sajkdfhl asdfjsak df";
+  }
+
+  public void assign (SampleModelItem item) {
+    this.num = item.num;
+    this.time_delta_label.label = this.num.to_string ();
   }
 }
 
@@ -78,6 +58,8 @@ class DemoWindow : Gtk.Window {
   private Gtk.Label estimated_height_label;
   [GtkChild]
   private Gtk.ScrolledWindow scroller;
+  [GtkChild]
+  private Gtk.Entry filter_entry;
 
   private GLib.ListStore model = new GLib.ListStore (typeof (SampleModelItem));
 
@@ -101,43 +83,21 @@ class DemoWindow : Gtk.Window {
       estimated_height_label.label = "%'dpx".printf (list_box.estimated_height);
     });
 
+    filter_entry.notify["text"].connect (filter_text_changed_cb);
+
 
     list_box.fill_func = (item, widget) => {
       TweetRow? row = (TweetRow) widget;
-
       assert (item != null);
 
       if (row == null)
         row = new TweetRow ();
 
+      row.assign ((SampleModelItem)item);
+
       row.show ();
 
       return row;
-
-      //SampleWidget sample_widget = (SampleWidget) widget;
-      //assert (item != null);
-
-      //if (widget == null)
-        //sample_widget = new SampleWidget ();
-      //else
-        //sample_widget.unassign ();
-
-      //var sample = (SampleModelItem) item;
-
-      //sample_widget.assign (sample);
-
-
-      //if (sample.num > 25)
-        //sample_widget.set_size_request (-1, 100);
-      //else
-        //sample_widget.set_size_request (-1, 20);
-
-
-      //sample_widget.num = sample.num;
-      //sample_widget.size = (int)model.get_n_items ();
-
-      //sample_widget.show_all ();
-      //return sample_widget;
     };
 
 
@@ -147,6 +107,11 @@ class DemoWindow : Gtk.Window {
     list_box.set_model (model);
 
     model_size_label.label = "%'u".printf (model.get_n_items ());
+  }
+
+  private void filter_text_changed_cb () {
+    string new_text = filter_entry.text;
+    message (new_text);
   }
 
   [GtkCallback]
