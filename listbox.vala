@@ -201,15 +201,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   {
     message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
              position, removed, added);
-    /*
-
-       1) `position` is alreay in the viewport:
-           - model_to += net_size
-           - remove `net_size` items, beginning from `position`
-           - add more items at the bottom until bin_window is big enough
-     */
-
-
 
     if (position > model_to &&
         bin_window_full ()) {
@@ -672,6 +663,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
       remove_all_widgets ();
 
+      message ("top_widget_index; %d", top_widget_index);
       this.model_from = top_widget_index;// - 1;
       this.model_to  = model_from - 1;
 
