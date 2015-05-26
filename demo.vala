@@ -1,13 +1,62 @@
 
 
 
+// Model {{{
+
+class TweetModel : GLib.ListModel, GLib.Object {
+  private Gee.ArrayList<SampleModelItem> items = new Gee.ArrayList<SampleModelItem> ();
+
+  public GLib.Type get_item_type () {
+    return typeof (SampleModelItem);
+  }
+
+  public uint get_n_items () {
+    return items.size;
+  }
+
+  public GLib.Object? get_item (uint position) {
+    return items.get ((int)position);
+  }
+
+  public void append (SampleModelItem item) {
+    this.items.add (item);
+  }
+
+}
+
+// }}}
+
+
+// UTIL {{{
+
+string random_text () {
+  const int MAX_LENGTH = 300;
+  const int MIN_LENGTH = 20;
+  StringBuilder b = new StringBuilder ();
+
+  // XXX Should just use a char[] m( m( m(
+
+  int length = GLib.Random.int_range (MIN_LENGTH, MAX_LENGTH);
+
+  for (int i = 0; i < length; i ++) {
+    char r_c = (char) (96 + GLib.Random.int_range (0, 128-97));
+    b.append_c (r_c);
+  }
+  return b.str;
+}
+
+// }}}
+
 class SampleModelItem : GLib.Object {
   public int num;
   public int size;
   public bool checked = false;
+  public string text;
+
   public SampleModelItem (int num, int size) {
     this.num = num;
     this.size = size;
+    this.text = random_text ();
   }
 }
 
@@ -20,13 +69,14 @@ class TweetRow : Gtk.ListBoxRow {
   public int num = 0;
 
   public TweetRow () {
-    text_label.label = "asdkfjsdahfsdakjf sdafhsda fgsdag fhgsajkfhsga dhfsga df <a href=\"foobar\">hihi</a>
-      asdfsadfsadf asjkdf sajkdfhl asdfjsak df";
+    //text_label.label = "asdkfjsdahfsdakjf sdafhsda fgsdag fhgsajkfhsga dhfsga df <a href=\"foobar\">hihi</a>
+      //asdfsadfsadf asjkdf sajkdfhl asdfjsak df";
   }
 
   public void assign (SampleModelItem item) {
     this.num = item.num;
     this.time_delta_label.label = this.num.to_string ();
+    this.text_label.label = item.text;
   }
 }
 
@@ -61,11 +111,12 @@ class DemoWindow : Gtk.Window {
   [GtkChild]
   private Gtk.Entry filter_entry;
 
-  private GLib.ListStore model = new GLib.ListStore (typeof (SampleModelItem));
+  private TweetModel model = new TweetModel ();
 
 
   public DemoWindow () {
 
+    this.delete_event.connect (() => { Gtk.main_quit (); return false; });
 
 
     list_box.notify["cur-widgets"].connect (() => {
@@ -119,10 +170,15 @@ class DemoWindow : Gtk.Window {
     for (int i = 0; i < model.get_n_items (); i ++) {
       var item = (SampleModelItem)model.get_object (i);
       if (item.checked) {
-        model.remove (i);
+        //model.remove (i);
         i --;
       }
     }
+  }
+
+  [GtkCallback]
+  private void reverse_order_button_clicked_cb () {
+    this.demo.reverse_order ();
   }
 
   [GtkCallback]

@@ -226,6 +226,39 @@
 
 
 
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">true</property>
+                        <property name="label">Sort</property>
+                        <property name="halign">start</property>
+                        <property name="margin_top">24</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">4</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+
+                    <child>
+                      <object class="GtkButton" id="sort_reverse_button">
+                        <property name="visible">true</property>
+                        <property name="label">Reverse Order</property>
+                        <signal name="clicked" handler="reverse_order_button_clicked_cb" />
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">5</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+
+
+
+
                   </object>
                 </child>
 

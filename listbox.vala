@@ -4,7 +4,6 @@
    - remove last row(s) -> checkbox doesn't work anymore
    - Test complex widgets!
    - Fix all XXX
-   - Use GtkListBoxRow
    - Revealer in Widget (Should work already?)
    - test invisible widgets (this will probably fail)
    - value animation is broken if upper changes during it.
