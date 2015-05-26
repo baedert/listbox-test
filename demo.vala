@@ -22,6 +22,11 @@ class TweetModel : GLib.ListModel, GLib.Object {
     this.items.add (item);
   }
 
+  public void insert (int pos, SampleModelItem item) {
+    items.insert (pos, item);
+    this.items_changed (pos, 0, 1);
+  }
+
   public void shuffle () {
     int s = items.size;
     // Don't reverse the order,
@@ -195,6 +200,33 @@ class DemoWindow : Gtk.Window {
   private void reverse_order_button_clicked_cb () {
     this.model.shuffle ();
   }
+
+  [GtkCallback]
+  private void add_start_button_clicked_cb () {
+    int index = 0;
+    var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
+    this.model.insert (index, item);
+  }
+
+  [GtkCallback]
+  private void add_middle_button_clicked_cb () {
+    int index = this.list_box.model_from +
+      (this.list_box.model_to - this.list_box.model_from) / 2;
+
+    var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
+    this.model.insert (index, item);
+  }
+
+  [GtkCallback]
+  private void add_end_button_clicked_cb () {
+    // XXX This fails if the last part of the list ist visible
+    int index = (int)this.model.get_n_items () - 1;
+    var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
+    this.model.insert (index, item);
+  }
+
+
+
 
   [GtkCallback]
   private void remove_all_cb () {

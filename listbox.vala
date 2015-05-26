@@ -143,13 +143,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     model_to -= count;
     int removed_height = 0;
     for (int i = count - 1; i >= 0; i --) {
-    //for (int i = 0; i < count; i ++) {
       int index = pos + i;
       var w = this.widgets.get (index);
       removed_height += get_widget_height (w);
       this.remove_child_internal (w);
-      //this.widgets.remove_at (index);
-      //i --;
     }
 
     // Move the tail up
@@ -173,17 +170,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
 
 
+  private inline uint max (uint a, uint b)
+  {
+    return (a > b) ? a : b;
+  }
+
   private void items_changed_cb (uint position, uint removed, uint added)
   {
     message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
              position, removed, added);
-    // XXX use added/removed for the calculation here!
-    /* We need to (try to) keep vadjustment.value the same,
-       i.e. if the value was e.g. 0 before and thus displayed
-       the first row, it also has to stay 0 after.
-     */
-
-
     /*
 
        1) `position` is alreay in the viewport:
@@ -192,39 +187,51 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
            - add more items at the bottom until bin_window is big enough
      */
 
+
+
+    if (position > model_to) {
+      if (this._vadjustment == null)
+        this.queue_resize ();
+      else
+        this.configure_adjustment ();
+
+      return;
+    }
+
     int net_size = (int)added - (int)removed;
-    uint impact = (int)position + (int)added - (int)removed;
+    uint impact = position + max (added, removed);
 
-
-
-    if (position >= model_from &&
-        position <= model_to) {
-      // we need to do extra work to change some visible widgets
-
-      message ("position: %u, model_from: %d, model_to: %d",
-               position, model_from, model_to);
+    if (impact > model_from) {
+      //int pos_diff = model_from - (int)position;
+      int widgets_to_remove = (int)position + (int)removed - model_from;
+      if (widgets_to_remove > this.widgets.size)
+        widgets_to_remove = this.widgets.size - 1;
+      int widgets_to_add    = (int)position + (int)added - model_from;
       int widget_pos = (int)position - model_from;
+      if (widget_pos < 0) widget_pos = 0;
 
-      // XXX These 2 can have special measures for cases,
-      //     e.g. the 2nd call might not have to kill all the widgets
-      int widgets_removed = model_to - (int)position;
-      this.remove_visible_widgets (widget_pos, widgets_removed);
-      this.insert_visible_widgets (widget_pos, (int)added);
+      //message ("widget_pos:        %d", widget_pos);
+      //message ("widgets_to_remove: %d", widgets_to_remove);
+      //message ("widgets_to_add:    %d", widgets_to_add);
+
+      if (widgets_to_remove > 0)
+        this.remove_visible_widgets (widget_pos, widgets_to_remove);
+
+      if (widgets_to_add > 0 && widgets_to_add < this.widgets.size)
+        this.insert_visible_widgets (widget_pos, widgets_to_add);
+
+
       // XXX We need to call update_bin_window just to make
       //     ensure_visible_widgets actually add widgets at the end
       //     of the list (see the condition there). Maybe just change
       //    the condition?
       this.update_bin_window ();
       this.ensure_visible_widgets ();
-
-    } else if (position < model_from) {
-      // Can still reach into the viewport
-      model_from += net_size;
-      model_to   += net_size;
-    } else {
-      // Everything's fine, basically.
-      //message ("changed item is invisible");
     }
+
+
+
+
     if (this._vadjustment == null)
       this.queue_resize ();
     else
