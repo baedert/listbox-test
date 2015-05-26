@@ -246,7 +246,7 @@
                     <child>
                       <object class="GtkButton" id="sort_reverse_button">
                         <property name="visible">true</property>
-                        <property name="label">Reverse Order</property>
+                        <property name="label">Shuffle</property>
                         <signal name="clicked" handler="reverse_order_button_clicked_cb" />
                       </object>
                       <packing>

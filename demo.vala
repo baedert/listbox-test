@@ -22,6 +22,18 @@ class TweetModel : GLib.ListModel, GLib.Object {
     this.items.add (item);
   }
 
+  public void shuffle () {
+    int s = items.size;
+    // Don't reverse the order,
+    for (int i = 0; i < s / 2; i ++) {
+      var k = this.items.remove_at (i);
+      this.items.insert ((int)(GLib.Random.next_int () % (this.items.size - 1)),
+                         k);
+    }
+
+    // Everything changed
+    this.items_changed (0, get_n_items (), get_n_items ());
+  }
 }
 
 // }}}
@@ -158,6 +170,9 @@ class DemoWindow : Gtk.Window {
     list_box.set_model (model);
 
     model_size_label.label = "%'u".printf (model.get_n_items ());
+    model.items_changed.connect (() => {
+      model_size_label.label = "%'u".printf (model.get_n_items ());
+    });
   }
 
   private void filter_text_changed_cb () {
@@ -178,7 +193,7 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void reverse_order_button_clicked_cb () {
-    this.demo.reverse_order ();
+    this.model.shuffle ();
   }
 
   [GtkCallback]

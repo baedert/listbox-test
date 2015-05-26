@@ -142,10 +142,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // adjusting model_to/model_from accordingly
     model_to -= count;
     int removed_height = 0;
-    for (int i = 0; i < count; i ++) {
+    for (int i = count - 1; i >= 0; i --) {
+    //for (int i = 0; i < count; i ++) {
       int index = pos + i;
-      removed_height += get_widget_height (this.widgets.get (index));
-      this.widgets.remove_at (index);
+      var w = this.widgets.get (index);
+      removed_height += get_widget_height (w);
+      this.remove_child_internal (w);
+      //this.widgets.remove_at (index);
       //i --;
     }
 
@@ -198,11 +201,14 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         position <= model_to) {
       // we need to do extra work to change some visible widgets
 
+      message ("position: %u, model_from: %d, model_to: %d",
+               position, model_from, model_to);
       int widget_pos = (int)position - model_from;
 
       // XXX These 2 can have special measures for cases,
       //     e.g. the 2nd call might not have to kill all the widgets
-      this.remove_visible_widgets (widget_pos, (int)removed);
+      int widgets_removed = model_to - (int)position;
+      this.remove_visible_widgets (widget_pos, widgets_removed);
       this.insert_visible_widgets (widget_pos, (int)added);
       // XXX We need to call update_bin_window just to make
       //     ensure_visible_widgets actually add widgets at the end
