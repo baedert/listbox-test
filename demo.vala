@@ -137,7 +137,8 @@ class DemoWindow : Gtk.Window {
 
 
     list_box.notify["cur-widgets"].connect (() => {
-      used_widgets_label.label = "%'u".printf (list_box.cur_widgets);
+      used_widgets_label.label = "%'u (%'u cached, %'u total)"
+              .printf (list_box.cur_widgets, list_box.cached_widgets, list_box.total_widgets);
     });
 
     list_box.notify["model-from"].connect (() => {
@@ -169,7 +170,8 @@ class DemoWindow : Gtk.Window {
     };
 
 
-    for (int i = 0; i < 5000; i ++)
+    //for (int i = 0; i < 5000; i ++)
+    for (int i = 0; i < 5; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);
@@ -220,7 +222,7 @@ class DemoWindow : Gtk.Window {
   [GtkCallback]
   private void add_end_button_clicked_cb () {
     // XXX This fails if the last part of the list ist visible
-    int index = (int)this.model.get_n_items () - 1;
+    int index = (int)this.model.get_n_items ();
     var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
     this.model.insert (index, item);
   }

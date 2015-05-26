@@ -2,6 +2,7 @@
 /*
    == TODO LIST ==
    - remove last row(s) -> checkbox doesn't work anymore
+   - Very thin window -> widgets invisible
    - Test complex widgets!
    - Fix all XXX
    - Revealer in Widget (Should work already?)
@@ -105,6 +106,18 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     }
   }
 
+  public int cached_widgets {
+    get {
+      return this.old_widgets.size;
+    }
+  }
+
+  public int total_widgets {
+    get {
+      return this.old_widgets.size + this.widgets.size;
+    }
+  }
+
   /* }}} */
 
 
@@ -175,6 +188,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     return (a > b) ? a : b;
   }
 
+  private inline bool bin_window_full () {
+    int bin_height;
+    Gtk.Allocation widget_alloc;
+    this.bin_window.get_geometry (null, null, null, out bin_height);
+    this.get_allocation (out widget_alloc);
+
+    return !(bin_y () + bin_height <= widget_alloc.height);
+  }
+
   private void items_changed_cb (uint position, uint removed, uint added)
   {
     message ("ITEMS CHANGED. position: %u, removed: %u, added: %u",
@@ -189,7 +211,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
-    if (position > model_to) {
+    if (position > model_to &&
+        bin_window_full ()) {
       if (this._vadjustment == null)
         this.queue_resize ();
       else
@@ -202,33 +225,34 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     uint impact = position + max (added, removed);
 
     if (impact > model_from) {
-      //int pos_diff = model_from - (int)position;
+      // XXX We could optimize this by actually inserting new widgets
+      //     When they can be inserted instead of always removing/re-adding
+      //     the entire tail/.
       int widgets_to_remove = (int)position + (int)removed - model_from;
       if (widgets_to_remove > this.widgets.size)
         widgets_to_remove = this.widgets.size - 1;
 
-      int widgets_to_add    = (int)position + (int)added - model_from;
+      int widgets_to_add  = (int)position + (int)added - model_from;
       int widget_pos = (int)position - model_from;
 
       if (widget_pos < 0) widget_pos = 0;
 
-      message ("model_from:        %d", model_from);
-      message ("model_to:          %d", model_to);
-      message ("widget_pos:        %d", widget_pos);
-      message ("widgets_to_remove: %d", widgets_to_remove);
-      message ("widgets_to_add:    %d", widgets_to_add);
+      //message ("model_from:        %d", model_from);
+      //message ("model_to:          %d", model_to);
+      //message ("widget_pos:        %d", widget_pos);
+      //message ("widgets_to_remove: %d", widgets_to_remove);
+      //message ("widgets_to_add:    %d", widgets_to_add);
 
-      if (widgets_to_remove > 0)
+
+      if (widgets_to_remove > 0) {
+        widgets_to_remove = this.widgets.size - widget_pos;
         this.remove_visible_widgets (widget_pos, widgets_to_remove);
+      }
 
       if (widgets_to_add > 0 && widgets_to_add < this.widgets.size)
         this.insert_visible_widgets (widget_pos, widgets_to_add);
 
-
-      // XXX We need to call update_bin_window just to make
-      //     ensure_visible_widgets actually add widgets at the end
-      //     of the list (see the condition there). Maybe just change
-      //    the condition?
+      // XXX Just decrease the bin_window size by the widget's height when removing it.
       this.update_bin_window ();
       this.ensure_visible_widgets ();
     }
