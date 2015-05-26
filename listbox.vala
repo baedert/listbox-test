@@ -206,13 +206,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       int widgets_to_remove = (int)position + (int)removed - model_from;
       if (widgets_to_remove > this.widgets.size)
         widgets_to_remove = this.widgets.size - 1;
+
       int widgets_to_add    = (int)position + (int)added - model_from;
       int widget_pos = (int)position - model_from;
+
       if (widget_pos < 0) widget_pos = 0;
 
-      //message ("widget_pos:        %d", widget_pos);
-      //message ("widgets_to_remove: %d", widgets_to_remove);
-      //message ("widgets_to_add:    %d", widgets_to_add);
+      message ("model_from:        %d", model_from);
+      message ("model_to:          %d", model_to);
+      message ("widget_pos:        %d", widget_pos);
+      message ("widgets_to_remove: %d", widgets_to_remove);
+      message ("widgets_to_add:    %d", widgets_to_add);
 
       if (widgets_to_remove > 0)
         this.remove_visible_widgets (widget_pos, widgets_to_remove);
