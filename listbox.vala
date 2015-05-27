@@ -2,8 +2,8 @@
 /*
    == TODO LIST ==
    - remove last row(s) -> checkbox doesn't work anymore
+   - Remove all, add 2 items -> will display the same item twice.
    - Very thin window -> widgets invisible
-   - Test complex widgets!
    - Fix all XXX
    - Revealer in Widget (Should work already?)
    - test invisible widgets (this will probably fail)
