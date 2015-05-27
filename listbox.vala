@@ -674,8 +674,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
           this.insert_child_internal (widget, 0);
         }
 
-        assert (model_from <= model_to);
+        if (!(model_from == 0 && model_to == -1)) {
+          assert (model_from <= model_to);
+        }
         assert (model_to == (int)this.model.get_n_items () - 1);
+
+        // if bin_y () is still > 0, we just don't have enough widgets to fill the entire
+        // viewport, so just move the bin_window up again
+        if (bin_y () > 0)
+          this.bin_y_diff = 0;
 
         configure_adjustment ();
         return;

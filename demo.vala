@@ -54,7 +54,7 @@ class TweetModel : GLib.ListModel, GLib.Object {
 // UTIL {{{
 
 string random_text () {
-  const int MAX_LENGTH = 300;
+  const int MAX_LENGTH = 600;
   const int MIN_LENGTH = 20;
   StringBuilder b = new StringBuilder ();
 
