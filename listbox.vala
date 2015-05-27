@@ -2,6 +2,7 @@
 /*
    == TODO LIST ==
    - remove last row(s) -> checkbox doesn't work anymore
+   - Make model_from and model_to uints.
    - Remove all, add 2 items -> will display the same item twice.
    - Very thin window -> widgets invisible
    - Fix all XXX
@@ -17,6 +18,8 @@
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
 
+delegate bool ItemFilterFunc (GLib.Object item);
+
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -24,6 +27,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   private Gdk.Window bin_window;
   private GLib.ListModel model;
   public WidgetFillFunc fill_func;
+  public ItemFilterFunc? filter_func = null;
   private int bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 
   private int _model_from = 0;
@@ -116,6 +120,31 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   }
 
 
+  public void refilter ()
+  {
+
+  }
+
+  private Gtk.Widget get_next_widget (uint start_index,
+                                      out uint selected_index)
+  {
+    uint unfiltered_index = start_index;
+
+    if (this.filter_func != null) {
+      while (unfiltered_index < this.model.get_n_items () &&
+             !this.filter_func (this.model.get_object (unfiltered_index)))
+        unfiltered_index ++;
+
+      message ("Unfiltered: %u, start_index: %u", unfiltered_index, start_index);
+    }
+
+    selected_index = unfiltered_index;
+
+    return fill_func (model.get_object (unfiltered_index),
+                      get_old_widget ());
+  }
+
+
   private Gtk.Widget? get_old_widget ()
   {
     if (this.old_widgets.size == 0)
@@ -169,7 +198,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       i --;
     }
     this.position_children ();
-
   }
 
 
@@ -202,7 +230,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       return;
     }
 
-    int net_size = (int)added - (int)removed;
     uint impact = position + max (added, removed);
 
     if (impact > model_from) {
@@ -616,8 +643,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       if (this.widgets.size < (int)this.model.get_n_items ()) {
         while (model_to < (int)this.model.get_n_items () - 1) {
           model_to ++;
-          Gtk.Widget new_widget = fill_func (model.get_object (model_to),
-                                             get_old_widget ());
+          var new_widget = get_next_widget (model_to);
           this.insert_child_internal (new_widget, model_to);
         }
       }
@@ -665,8 +691,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         while (model_from > 0 &&
                bin_height < this.get_allocated_height ()) {
           this.model_from --;
-          var widget = fill_func (this.model.get_object (model_from),
-                                  get_old_widget ());
+          var widget = get_next_widget (model_from);
           int widget_height = this.get_widget_height (widget);
 
           bin_height += widget_height;
@@ -710,8 +735,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
              model_to < (int)this.model.get_n_items () - 1) {
         model_to ++;
         assert (model_to < this.model.get_n_items ());
-        Gtk.Widget new_widget = fill_func (model.get_object (model_to),
-                                           get_old_widget ());
+        var new_widget = get_next_widget (model_to);
         assert (new_widget != null);
         int min;
         min = get_widget_height (new_widget);
@@ -733,8 +757,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // TOP {{{
     // Insert widgets at top
     while (bin_y () > 0 && model_from > 0) {
-      var new_widget = fill_func (model.get_object (model_from - 1),
-                                  get_old_widget ());
+      var new_widget = get_next_widget (model_from - 1);
       assert (new_widget != null);
       model_from --;
       this.insert_child_internal (new_widget, 0);
@@ -789,8 +812,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     // Bottom of bin_window hangs into the widget
     while (bin_y () + bin_height <= widget_alloc.height &&
            model_to < (int)model.get_n_items () - 1) {
-      var new_widget = fill_func (model.get_object (model_to + 1),
-                                  get_old_widget ());
+      var new_widget = get_next_widget (model_to + 1);
       assert (new_widget != null);
       this.insert_child_internal (new_widget, this.widgets.size);
       model_to ++;

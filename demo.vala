@@ -176,6 +176,13 @@ class DemoWindow : Gtk.Window {
       return row;
     };
 
+    list_box.filter_func = (item) => {
+      assert (item != null);
+      var sample = (SampleModelItem) item;
+
+      return sample.num % 2 == 0;
+    };
+
 
     for (int i = 0; i < 5000; i ++)
     //for (int i = 0; i < 5; i ++)
