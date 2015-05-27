@@ -14,6 +14,13 @@ class TweetModel : GLib.ListModel, GLib.Object {
     return items.size;
   }
 
+  public void clear () {
+    int size = this.items.size;
+
+    items.clear ();
+    this.items_changed (0, size, 0);
+  }
+
   public GLib.Object? get_item (uint position) {
     return items.get ((int)position);
   }
@@ -227,11 +234,8 @@ class DemoWindow : Gtk.Window {
     this.model.insert (index, item);
   }
 
-
-
-
   [GtkCallback]
   private void remove_all_cb () {
-    error ("TODO: Implement");
+    this.model.clear ();
   }
 }

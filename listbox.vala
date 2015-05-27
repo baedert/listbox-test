@@ -587,7 +587,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       h += min;
     }
 
-    assert (h >= 0);
+    if (h == 0)
+      h = 1;
+
+    assert (h > 0); // min-size for GdkWindows is 1x1
     return h;
   }
 
@@ -814,7 +817,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
     assert (this.widgets.size == (model_to - model_from + 1));
     assert (model_to <= model.get_n_items () -1);
-    assert (model_to >= 0);
+    //message ("model_to: %d", model_to);
+    //assert (model_to >= 0);
     assert (model_from >= 0);
     assert (model_from <= model.get_n_items () - 1);
     assert (this.bin_y_diff >= 0);
