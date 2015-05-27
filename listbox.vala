@@ -61,16 +61,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
   /* }}} */
 
   /* Debugging Poperties {{{ */
-  private uint _max_widgets = 0;
-  public uint max_widgets {
-    get {
-      return _max_widgets;
-    }
-    set {
-      _max_widgets = value;
-    }
-  }
-
   private uint _cur_widgets = 0;
   public uint cur_widgets {
     get {
@@ -270,7 +260,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     widget.set_parent (this);
     this.widgets.insert (index, widget);
 
-
+    // DBG
     this.cur_widgets = this.widgets.size;
   }
 
@@ -284,9 +274,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
     widget.unparent ();
     this.old_widgets.add (widget);
 
-    if (old_widgets.size > _max_widgets)
-      this.max_widgets = old_widgets.size;
-
+    // DBG
     this.cur_widgets = this.widgets.size;
   }
 
@@ -711,7 +699,29 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
       this.bin_y_diff -= min;
       child_y_diff += min;
     }
-    assert (bin_y () <= 0);
+
+
+    /* XXX This case can happen when we overestimate the size
+       of the widgets at the top of the visible range.
+    */
+    if (bin_y () > 0 && model_from == 0) {
+      // Can't help it, need to move the bin_window :(
+      assert ((int)this._vadjustment.value == 0); // Let's HOPE this is true.
+      this.bin_y_diff = 0;
+      assert (bin_y () == 0);
+      // bin_window will be filled later
+    }
+
+
+    if (bin_y () > 0) {
+      message ("bin_y: %d", bin_y ());
+      message ("value: %f", this._vadjustment.value);
+      message ("bin_y_diff: %d", this.bin_y_diff);
+      message ("model_from: %d", model_from);
+
+      assert_not_reached ();
+    }
+    //assert (bin_y () <= 0);
 
 
     for (int i = 0; i < this.widgets.size; i ++) {
