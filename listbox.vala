@@ -642,8 +642,41 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
         bin_y () > widget_alloc.height) {
       int estimated_widget_height = estimated_widget_height ();
       assert (estimated_widget_height >= 0);
+      /*
+         XXX We can overestimate the complete real size of the list,
+             so top_widget_index might be too big.
+             In that case, just set model_to = items.size - 1
+             and build the visible widgets backwards.
+       */
       int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
       assert (top_widget_index >= 0);
+
+      if (top_widget_index > this.model.get_n_items ()) {
+        remove_all_widgets ();
+        this.model_to = (int)this.model.get_n_items () - 1;
+        this.model_from = this.model_to + 1;
+
+        // Empty bin window at the bottom of the list/widget
+        bin_height = 0;
+        this.bin_y_diff = (int)this._vadjustment.value + this.get_allocated_height ();
+        while (model_from > 0 &&
+               bin_height < this.get_allocated_height ()) {
+          this.model_from --;
+          var widget = fill_func (this.model.get_object (model_from),
+                                  get_old_widget ());
+          int widget_height = this.get_widget_height (widget);
+
+          bin_height += widget_height;
+          this.bin_y_diff -= widget_height;
+          this.insert_child_internal (widget, 0);
+        }
+
+        assert (model_from <= model_to);
+        assert (model_to == (int)this.model.get_n_items () - 1);
+
+        configure_adjustment ();
+        return;
+      }
 
       int new_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
 
@@ -651,7 +684,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
       remove_all_widgets ();
 
-      message ("top_widget_index; %d", top_widget_index);
+      //message ("top_widget_index; %d", top_widget_index);
       this.model_from = top_widget_index;// - 1;
       this.model_to  = model_from - 1;
 
