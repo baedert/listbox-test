@@ -184,8 +184,8 @@ class DemoWindow : Gtk.Window {
     };
 
 
-    for (int i = 0; i < 5000; i ++)
-    //for (int i = 0; i < 5; i ++)
+    //for (int i = 0; i < 5000; i ++)
+    for (int i = 0; i < 50; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);
