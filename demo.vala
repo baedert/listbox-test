@@ -66,7 +66,8 @@ string random_text () {
     char r_c = (char) (96 + GLib.Random.int_range (0, 128-97));
     b.append_c (r_c);
   }
-  return b.str;
+  //return b.str;
+  return "bbb";
 }
 
 // }}}
@@ -102,6 +103,13 @@ class TweetRow : Gtk.ListBoxRow {
     this.time_delta_label.label = this.num.to_string ();
     this.text_label.label = item.text;
   }
+
+  public override bool draw (Cairo.Context ct) {
+    ct.set_source_rgba (1, 1, 1, 1);
+    ct.rectangle (0, 0, get_allocated_width (), get_allocated_height ());
+    ct.fill ();
+    return base.draw (ct);
+  }
 }
 
 
@@ -131,9 +139,9 @@ class DemoWindow : Gtk.Window {
   [GtkChild]
   private Gtk.Label estimated_height_label;
   [GtkChild]
-  private Gtk.ScrolledWindow scroller;
-  [GtkChild]
   private Gtk.Entry filter_entry;
+  [GtkChild]
+  private Gtk.Switch filter_switch;
 
   private TweetModel model = new TweetModel ();
 
@@ -155,7 +163,7 @@ class DemoWindow : Gtk.Window {
       visible_items_label.label = "%'d - %'d".printf (list_box.model_from, list_box.model_to);
     });
 
-    scroller.get_vadjustment ().value_changed.connect (() => {
+    list_box.notify["estimated-height"].connect (() => {
       estimated_height_label.label = "%'dpx".printf (list_box.estimated_height);
     });
 
@@ -176,16 +184,9 @@ class DemoWindow : Gtk.Window {
       return row;
     };
 
-    list_box.filter_func = (item) => {
-      assert (item != null);
-      var sample = (SampleModelItem) item;
-
-      return sample.num % 2 == 0;
-    };
-
 
     //for (int i = 0; i < 5000; i ++)
-    for (int i = 0; i < 50; i ++)
+    for (int i = 0; i < 30; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);
@@ -242,7 +243,28 @@ class DemoWindow : Gtk.Window {
   }
 
   [GtkCallback]
+  private void filter_cb () {
+    if (this.filter_switch.active) {
+      list_box.filter_func = (item) => {
+        assert (item != null);
+        var sample = (SampleModelItem) item;
+
+        return sample.num % 2 == 0;
+      };
+      list_box.refilter ();
+    } else {
+      list_box.filter_func = null;
+      list_box.refilter ();
+    }
+  }
+
+  [GtkCallback]
   private void remove_all_cb () {
     this.model.clear ();
+  }
+
+  [GtkCallback]
+  private void debug_cb () {
+    this.list_box.print_debug_info ();
   }
 }
