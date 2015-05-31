@@ -867,7 +867,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			} else
 				break;
 		}
-		// }}}
 
 
 		// Insert widgets at bottom
@@ -881,7 +880,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 				// XXX At this point, the widgets could hang into the window
 						 //because we just didn't have enough widgets to fill it.
-				//message ("END OF LIST : %d", this.bin_y_diff);
+				message ("END OF LIST : %d", this.bin_y_diff);
 				this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
 				break;
 			}
@@ -896,14 +895,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			min = get_widget_height (new_widget);
 			bin_height += min;
 		}
+		// }}}
 
 
 
-		configure_adjustment ();
 
 
 		// XXX Maybe optimize this out if nothing changed?
 		// XXX update_bin_window will do slow stuff and we just computed bin_height ourselves...
+		configure_adjustment ();
 		this.update_bin_window ();
 		int h;
 		this.bin_window.get_geometry (null, null, null, out h);
@@ -914,6 +914,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 		assert (this.bin_y_diff >= 0);
+		if (bin_y () > 0)
+		  message ("bin_y: %d", bin_y ());
 		assert (bin_y () <= 0);
 
 		// is the lower bound of bin_window in our viewport? It shouldn't.
