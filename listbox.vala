@@ -666,6 +666,27 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		return p;
 	}
 
+
+	private void insert_needed_top_widgets (out int bin_height)
+	{
+		message ("bin_height before: %d", bin_height);
+		// Insert widgets at top
+		//while (bin_y () > 0 && model_from > 0) {
+			//uint new_model_from;
+			//var new_widget = get_prev_widget (model_from - 1, out new_model_from);
+			//assert (new_widget != null);
+			//this.model_from = (int)new_model_from;
+			//this.insert_child_internal (new_widget, 0);
+			//int min = get_widget_height (new_widget);
+			//message ("INSERT AT TOP");
+			//this.bin_y_diff -= min;
+			//bin_height += min;
+		//}
+
+		message ("bin_height after: %d", bin_height);
+	}
+
+
 	private void ensure_visible_widgets ()
 	{
 		if (!this.get_mapped () ||
@@ -816,24 +837,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			else break;
 		}
 
-
-
-		// Insert widgets at top
-		while (bin_y () > 0 && model_from > 0) {
-			uint new_model_from;
-			var new_widget = get_prev_widget (model_from - 1, out new_model_from);
-			// XXX We could also get null here...
-			assert (new_widget != null);
-			//model_from --;
-			this.model_from = (int)new_model_from;
-			this.insert_child_internal (new_widget, 0);
-			int min = get_widget_height (new_widget);
-			message ("INSERT AT TOP");
-			this.bin_y_diff -= min;
-			bin_height += min;
-		}
-
-
+		message ("bin_height A: %d", bin_height);
+		insert_needed_top_widgets (out bin_height);
+		message ("bin_height B: %d", bin_height);
 
 
 		// }}}
@@ -886,10 +892,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			}
 			this.insert_child_internal (new_widget, this.widgets.size);
 
-			message ("ADDING AT BOTTOM");
-			//model_to ++;
-			//message ("old model_to: %d, new model_to: %u", model_to, new_model_to);
-
+			message ("INSERT AT BOTTOM");
 			this.model_to = (int)new_model_to;
 			int min;
 			min = get_widget_height (new_widget);
