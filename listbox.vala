@@ -650,7 +650,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private void ensure_visible_widgets ()
 	{
 		if (!this.get_mapped () ||
-				this.model == null)
+		    this.model == null)
 			return;
 
 		// !vadjustment case {{{
@@ -917,6 +917,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		this.update_bin_window ();
 		int h;
 		this.bin_window.get_geometry (null, null, null, out h);
+		if (h == 1) h = 0;
 		assert (h == bin_height);
 		this.position_children ();
 
