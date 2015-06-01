@@ -872,6 +872,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (top_removed)
 		  assert (!top_added);
 
+		if (top_added)
+		  assert (!top_removed);
+
 
 
 		// }}}
