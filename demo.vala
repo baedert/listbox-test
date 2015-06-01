@@ -146,6 +146,8 @@ class DemoWindow : Gtk.Window {
   private Gtk.Entry filter_entry;
   [GtkChild]
   private Gtk.Switch filter_switch;
+  [GtkChild]
+  private Gtk.ScrolledWindow scroller;
 
   private TweetModel model = new TweetModel ();
 
@@ -270,5 +272,15 @@ class DemoWindow : Gtk.Window {
   [GtkCallback]
   private void debug_cb () {
     this.list_box.print_debug_info ();
+  }
+
+  [GtkCallback]
+  private void scroll_up_cb () {
+    scroller.get_vadjustment ().value --;
+  }
+
+  [GtkCallback]
+  private void scroll_down_cb () {
+    scroller.get_vadjustment ().value ++;
   }
 }

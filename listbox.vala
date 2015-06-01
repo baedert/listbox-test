@@ -2,6 +2,7 @@
 /*
 	 == TODO LIST ==
 	 - remove last row(s) -> checkbox doesn't work anymore
+	 - Optimize stuff
 	 - Make model_from and model_to uints.
 	 - Remove all, add 2 items -> will display the same item twice.
 	 - Very thin window -> widgets invisible
@@ -640,8 +641,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		int list_height = estimated_list_height (out top_widgets_height,
 		                                         out bottom_widgets_height,
 		                                         out exact_list_height);
+
+
+		//list_height = estimated_widget_height () * (int)model.get_n_items ();
+
 		if ((int)this._vadjustment.upper != list_height) {
-			//message ("Updating upper from %d to %d", (int)this._vadjustment.upper, list_height);
+			message ("Updating upper from %d to %d", (int)this._vadjustment.upper, list_height);
 			//int diff = (int)this._vadjustment.upper - list_height;
 			//this.bin_y_diff -= diff;
 		}
@@ -687,6 +692,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			added = true;
 		}
 		return added;
+	}
+
+
+
+	private int widget_y (int index)
+	{
+		assert (index < this.widgets.size);
+		assert (index >= 0);
+
+		int y = 0;
+		for (int i = 0; i < index; i ++)
+		  y += get_widget_height (this.widgets.get (i));
+
+		assert (y >= 0);
+		return y;
 	}
 
 
@@ -827,11 +847,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		// Removing children at top
 		for (int i = 0; i < this.widgets.size; i ++) {
-			Gtk.Allocation alloc;
 			Gtk.Widget w = this.widgets.get (i);
-			w.get_allocation (out alloc);
 			int w_height = get_widget_height (w);
-			if (bin_y () + alloc.y +  w_height < 0) {
+			if (bin_y () + widget_y (i) +  w_height < 0) {
 				// Remove widget, resize and move bin_window
 				message ("REMOVE AT TOP");
 				this.bin_y_diff += w_height;
@@ -866,12 +884,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		// remove widgets
 		for (int i = this.widgets.size - 1; i >= 0; i --) {
-			Gtk.Allocation alloc;
 			var w = this.widgets.get (i);
-			w.get_allocation (out alloc);
 
 			// The widget's y in the lists' coordinates
-			int widget_y = bin_y () + alloc.y + child_y_diff;
+			int widget_y = bin_y () + widget_y (i);// + child_y_diff;
 			//message ("%d: %d + %d = %d", i, bin_y (), alloc.y, widget_y);
 			//message ("%d: Allocated height: %d", i, this.get_allocated_height ());
 			if (widget_y > this.get_allocated_height ()) {
@@ -899,9 +915,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			if (new_widget == null) {
 				//assert (new_model_to == this.model.get_n_items ());
 				this.model_to = (int)this.model.get_n_items () - 1;
-
 				// XXX At this point, the widgets could hang into the window
-						 //because we just didn't have enough widgets to fill it.
+				//because we just didn't have enough widgets to fill it.
 				message ("END OF LIST : %d", this.bin_y_diff);
 				this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
 				insert_needed_top_widgets (ref bin_height, true);
@@ -909,7 +924,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			}
 			this.insert_child_internal (new_widget, this.widgets.size);
 
-			message ("%d + %d < %d", bin_y (), bin_height, this.get_allocated_height ());
 			message ("INSERT AT BOTTOM for model_to %d", (int)new_model_to);
 			assert (!bottom_removed);
 			this.model_to = (int)new_model_to;
@@ -930,7 +944,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		int h;
 		this.bin_window.get_geometry (null, null, null, out h);
 		if (h == 1) h = 0;
-		message ("h: %d, bin_height: %d", h, bin_height);
 		assert (h == bin_height);
 		this.position_children ();
 
