@@ -34,7 +34,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			return this._bin_y_diff;
 		}
 		set {
-			message ("Setting bin_y_diff to %d", value);
+			message ("Setting bin_y_diff from %d to %d", this._bin_y_diff, value);
 			this._bin_y_diff = value;
 		}
 	}
@@ -667,8 +667,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	private void insert_needed_top_widgets (ref int bin_height, bool end = false)
+	private bool insert_needed_top_widgets (ref int bin_height, bool end = false)
 	{
+		bool added = false;
 		// Insert widgets at top
 		while (bin_y () > 0 && model_from > 0) {
 			uint new_model_from;
@@ -683,7 +684,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			if (end) {
 				message ("bin_y now: %d", bin_y ());
 			}
+			added = true;
 		}
+		return added;
 	}
 
 
@@ -814,7 +817,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 
 
+		/* Tracks differences in children's y coords
+		   when removing widgets above them. */
+		int child_y_diff = 0;
+
 		// TOP {{{
+
+		bool top_removed = false;
 
 		// Removing children at top
 		for (int i = 0; i < this.widgets.size; i ++) {
@@ -827,17 +836,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				message ("REMOVE AT TOP");
 				this.bin_y_diff += w_height;
 				bin_height -= w_height;
+				child_y_diff -= w_height;
 
 				this.remove_child_internal (w);
 
 				uint new_model_from;
 				this.get_next_widget (model_from + 1, out new_model_from);
 				this.model_from = (int)new_model_from;
+				top_removed = true;
 			}
 			else break;
 		}
 
-		insert_needed_top_widgets (ref bin_height);
+
+
+		bool top_added = insert_needed_top_widgets (ref bin_height);
+		if (top_removed)
+		  assert (!top_added);
+
 
 
 		// }}}
@@ -846,6 +862,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		// Bottom of bin_window hangs into the widget
 
 
+		bool bottom_removed = false;
+
 		// remove widgets
 		for (int i = this.widgets.size - 1; i >= 0; i --) {
 			Gtk.Allocation alloc;
@@ -853,36 +871,28 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			w.get_allocation (out alloc);
 
 			// The widget's y in the lists' coordinates
-			int widget_y = bin_y () + alloc.y;
-			message ("%d: %d + %d = %d", i, bin_y (), alloc.y, widget_y);
-			message ("%d: Allocated height: %d", i, this.get_allocated_height ());
+			int widget_y = bin_y () + alloc.y + child_y_diff;
+			//message ("%d: %d + %d = %d", i, bin_y (), alloc.y, widget_y);
+			//message ("%d: Allocated height: %d", i, this.get_allocated_height ());
 			if (widget_y > this.get_allocated_height ()) {
-				message ("REMOVE AT BOTTOM %d", i);
-				if (model_to == 28) {
-					var row = (TweetRow) w;
-					row.set_label ("END");
-					break;
-				} else {
+				message ("%d > %d", widget_y, this.get_allocated_height ());
+				message ("REMOVE AT BOTTOM with pos %d", model_to);
 				this.remove_child_internal (w);
 				// XXX Just calling this to get the previous visible item index
 				uint new_model_to;
 				this.get_prev_widget (this.model_to - 1,
-															out new_model_to);
+				                      out new_model_to);
 				int w_height = get_widget_height (w);
 				bin_height -= w_height;
-
-				//message ("Changing model_to from %d to %d", model_to, (int)new_model_to);
-
 				this.model_to = (int)new_model_to;
-				}
-				//model_to --;
+				bottom_removed = true;
 			} else
 				break;
 		}
 
 
 		// Insert widgets at bottom
-		while (bin_y () + bin_height <= widget_alloc.height &&
+		while (bin_y () + bin_height < this.get_allocated_height () &&
 		       model_to < (int)model.get_n_items () - 1) {
 			uint new_model_to;
 			var new_widget = get_next_widget (model_to + 1, out new_model_to);
@@ -899,7 +909,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			}
 			this.insert_child_internal (new_widget, this.widgets.size);
 
-			message ("INSERT AT BOTTOM");
+			message ("%d + %d < %d", bin_y (), bin_height, this.get_allocated_height ());
+			message ("INSERT AT BOTTOM for model_to %d", (int)new_model_to);
+			assert (!bottom_removed);
 			this.model_to = (int)new_model_to;
 			int min;
 			min = get_widget_height (new_widget);
