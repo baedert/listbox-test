@@ -564,8 +564,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 
 
-		int top_widgets		= model_from;
-		//message ("%u, %d", model.get_n_items (), model_to);
+		int top_widgets    = model_from;
 		int bottom_widgets = (int)this.model.get_n_items () - model_to - 1;
 
 		assert (top_widgets >= 0);
@@ -585,6 +584,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		widgets_part = exact_height;
 
 		assert (top_part >= 0);
+		assert (bottom_part >= 0);
+		assert (widgets_part >= 0);
 
 		int h =	exact_height +
 		        (int)(top_widgets    * widget_height * filter_factor) +
@@ -608,7 +609,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			min = get_widget_height (w);
 			assert (min >= 0);
 			h += min;
-			//message ("h + %d = %d", min, h);
 		}
 
 		if (h == 0)
@@ -645,11 +645,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		//list_height = estimated_widget_height () * (int)model.get_n_items ();
 
-		if ((int)this._vadjustment.upper != list_height) {
+		if ((int)this._vadjustment.upper != list_height)
 			message ("Updating upper from %d to %d", (int)this._vadjustment.upper, list_height);
-			//int diff = (int)this._vadjustment.upper - list_height;
-			//this.bin_y_diff -= diff;
-		}
+
 
 		this._vadjustment.configure (this._vadjustment.value,// value,
 		                             0, // lower
@@ -891,8 +889,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			// The widget's y in the lists' coordinates
 			int widget_y = bin_y () + widget_y (i);// + child_y_diff;
-			//message ("%d: %d + %d = %d", i, bin_y (), alloc.y, widget_y);
-			//message ("%d: Allocated height: %d", i, this.get_allocated_height ());
 			if (widget_y > this.get_allocated_height ()) {
 				message ("%d > %d", widget_y, this.get_allocated_height ());
 				message ("REMOVE AT BOTTOM with pos %d", model_to);
@@ -910,13 +906,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 
 
+
+
+
+
+
+
+		configure_adjustment ();
+
+
 		// Insert widgets at bottom
 		while (bin_y () + bin_height < this.get_allocated_height () &&
 		       model_to < (int)model.get_n_items () - 1) {
 			uint new_model_to;
 			var new_widget = get_next_widget (model_to + 1, out new_model_to);
 			if (new_widget == null) {
-				//assert (new_model_to == this.model.get_n_items ());
 				this.model_to = (int)this.model.get_n_items () - 1;
 				// XXX At this point, the widgets could hang into the window
 				//because we just didn't have enough widgets to fill it.
@@ -935,10 +939,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			bin_height += min;
 		}
 		// }}}
-
-
-
-
 
 		// XXX Maybe optimize this out if nothing changed?
 		// XXX update_bin_window will do slow stuff and we just computed bin_height ourselves...
@@ -961,7 +961,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		// This should also alwways be true
 		assert (bin_height > this.get_allocated_height ());
-
 
 		if (this.filter_func == null)
 			assert (this.widgets.size == (model_to - model_from + 1));
