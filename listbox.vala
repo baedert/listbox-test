@@ -667,9 +667,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	private void insert_needed_top_widgets (ref int bin_height)
+	private void insert_needed_top_widgets (ref int bin_height, bool end = false)
 	{
-		message ("bin_height before: %d", bin_height);
 		// Insert widgets at top
 		while (bin_y () > 0 && model_from > 0) {
 			uint new_model_from;
@@ -681,9 +680,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			message ("INSERT AT TOP");
 			this.bin_y_diff -= min;
 			bin_height += min;
+			if (end) {
+				message ("bin_y now: %d", bin_y ());
+			}
 		}
-
-		message ("bin_height after: %d", bin_height);
 	}
 
 
@@ -837,9 +837,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			else break;
 		}
 
-		message ("bin_height A: %d", bin_height);
 		insert_needed_top_widgets (ref bin_height);
-		message ("bin_height B: %d", bin_height);
 
 
 		// }}}
@@ -856,8 +854,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			// The widget's y in the lists' coordinates
 			int widget_y = bin_y () + alloc.y;
+			message ("%d: %d + %d = %d", i, bin_y (), alloc.y, widget_y);
+			message ("%d: Allocated height: %d", i, this.get_allocated_height ());
 			if (widget_y > this.get_allocated_height ()) {
 				message ("REMOVE AT BOTTOM %d", i);
+				if (model_to == 28) {
+					var row = (TweetRow) w;
+					row.set_label ("END");
+					break;
+				} else {
 				this.remove_child_internal (w);
 				// XXX Just calling this to get the previous visible item index
 				uint new_model_to;
@@ -869,6 +874,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				//message ("Changing model_to from %d to %d", model_to, (int)new_model_to);
 
 				this.model_to = (int)new_model_to;
+				}
 				//model_to --;
 			} else
 				break;
@@ -888,6 +894,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 						 //because we just didn't have enough widgets to fill it.
 				message ("END OF LIST : %d", this.bin_y_diff);
 				this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
+				insert_needed_top_widgets (ref bin_height, true);
 				break;
 			}
 			this.insert_child_internal (new_widget, this.widgets.size);

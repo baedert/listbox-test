@@ -104,6 +104,10 @@ class TweetRow : Gtk.ListBoxRow {
     this.text_label.label = item.text;
   }
 
+  public void set_label (string s) {
+		text_label.label = s;
+  }
+
   public override bool draw (Cairo.Context ct) {
     ct.set_source_rgba (1, 1, 1, 1);
     ct.rectangle (0, 0, get_allocated_width (), get_allocated_height ());
