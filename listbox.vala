@@ -504,8 +504,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 	/* }}} */
 
-
-
 	private inline int get_widget_height (Gtk.Widget w)
 	{
 		int min, nat;
@@ -586,7 +584,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (bottom_part >= 0);
 		assert (widgets_part >= 0);
 
-		int h =	exact_height +
+		int h = exact_height +
 		        (int)(top_widgets    * widget_height * filter_factor) +
 		        (int)(bottom_widgets * widget_height * filter_factor);
 
@@ -917,6 +915,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 
 
+								// XXX Fuck it, we need to know whether we are at the end beforehand.
+
+
 		// Insert widgets at bottom
 		while (bin_y () + bin_height < this.get_allocated_height () &&
 		       model_to < (int)model.get_n_items () - 1) {
@@ -929,7 +930,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				message ("END OF LIST : %d", this.bin_y_diff);
 				this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
 				message ("bin_y now: %d", bin_y());
-				//insert_needed_top_widgets (ref bin_height, true);
+				insert_needed_top_widgets (ref bin_height, true);
 				break;
 			}
 			this.insert_child_internal (new_widget, this.widgets.size);
@@ -963,7 +964,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (bin_y () + bin_height > -(int)vadjustment.value + this.get_allocated_height ());
 
 		// This should also alwways be true
-		assert (bin_height >= this.get_allocated_height ());
+		//assert (bin_height >= this.get_allocated_height ());
 
 		if (this.filter_func == null)
 			assert (this.widgets.size == (model_to - model_from + 1));
