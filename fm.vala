@@ -57,13 +57,14 @@ class FileModel : GLib.Object, GLib.ListModel
 	public async void scan_dir (string path)
 	{
 
+		message ("scanning %s", path);
 		//if (loading)
 		  //return;
 
 
 		loading = true;
 
-		this.clear ();
+		//this.clear ();
 		var dir = GLib.File.new_for_path (path);
 		var e = yield dir.enumerate_children_async (GLib.FileAttribute.STANDARD_NAME + "," +
 		                                            GLib.FileAttribute.STANDARD_ICON + "," +
@@ -85,11 +86,11 @@ class FileModel : GLib.Object, GLib.ListModel
 				var fd = new FileData ();
 				fd.is_dir = false;
 				fd.filename = info.get_name ();
-				fd.full_path = info.get_content_type ();
+				fd.full_path = e.get_child (info).get_path ();
         fd.icon = (GLib.ThemedIcon) info.get_icon ();
-				//if (info.get_file_Type () == GLib.FileType.DIRECTORY) {
-					//yield scan_dir (info.
-				//}
+				if (info.get_file_type () == GLib.FileType.DIRECTORY) {
+					yield scan_dir (e.get_child (info).get_path ());
+				}
 				message ("Appending...");
 				this.append (fd);
 			}
@@ -135,7 +136,7 @@ class FileRow : Gtk.ListBoxRow {
 
 
 	public void assign (FileData fd, string term) {
-		assert (fd.filename.contains (term));
+		//assert (fd.filename.contains (term));
 
 		if (this.load_id != -1)
 			GLib.Source.remove (load_id);
@@ -150,7 +151,8 @@ class FileRow : Gtk.ListBoxRow {
 			var icon_theme = Gtk.IconTheme.get_default ();
 
 			try {
-				this.icon_image.pixbuf = icon_theme.load_icon (fd.icon.names[0], 48,
+				string n = fd.icon.names.length > 1 ? fd.icon.names[1] : fd.icon.names[0];
+				this.icon_image.pixbuf = icon_theme.load_icon (n, 48,
 																											 Gtk.IconLookupFlags.FORCE_SIZE);
 			} catch (GLib.Error e) {}
 
@@ -211,7 +213,7 @@ void main (string[] args)
 	list_box.filter_func = (item) => {
 		FileData fd = (FileData) item;
 		string s = filter_entry.text;
-		return fd.filename.contains (s);
+		return fd.filename.down ().contains (s.down ());
 	};
 	list_box.fill_func = (item, old) => {
 		FileRow row = (FileRow) old;

@@ -8,9 +8,6 @@
 	 - Fix all XXX
 	 - Revealer in Widget (Should work already?)
 	 - test invisible widgets (this will probably fail)
-	 - value animation is broken if upper changes during it.
-		 Might need changes in gtkadjustment.c (_scroll_to_value)
-		 -> loading new content when scrolling to bottom breaks it :/
 	 - Port to C
  */
 
