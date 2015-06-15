@@ -49,6 +49,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this._vadjustment = value;
 			if (this._vadjustment != null) {
 				this._vadjustment.value_changed.connect (ensure_visible_widgets);
+        this._vadjustment.notify["page-size"].connect (page_size_changed_cb);
 			}
 			configure_adjustment ();
 		}
@@ -142,7 +143,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		this.model_to = -1;
 		this.bin_y_diff = 0;
 		this._vadjustment.value = 0;
-		this.ensure_visible_widgets ();
+		//this.ensure_visible_widgets ();
 	}
 
 	private Gtk.Widget? get_next_widget (uint start_index,
@@ -312,6 +313,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		this.get_allocation (out widget_alloc);
 
 		return !(bin_y () + bin_height <= widget_alloc.height);
+	}
+
+	private void page_size_changed_cb ()
+	{
+		double max_value = this._vadjustment.upper - this._vadjustment.page_size;
+
+		if (this._vadjustment.value > max_value) {
+			// XXX Will call ensure_visible_widgets
+			this._vadjustment.value = max_value;
+		}
+
+		this.configure_adjustment ();
+
+		// XXX HERE WE CALL IT AGAIN FUCK
+		this.ensure_visible_widgets ();
 	}
 
 	private void items_changed_cb (uint position, uint removed, uint added)
@@ -509,23 +525,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	//private int last_x;
-	//private int last_y;
-	//private int last_width;
-	//private int last_height;
 	public override void size_allocate (Gtk.Allocation allocation)
 	{
-		//if (allocation.x == last_x &&
-				//allocation.y == last_y &&
-				//allocation.width == last_width &&
-				//allocation.height == last_height)
-			//return;
-
-		//message ("size_allocate: %d, %d, %d, %d -> %d, %d, %d, %d",
-						 //last_x, last_y, last_width, last_height, allocation.x, allocation.y, allocation.width,
-						 //allocation.height);
-
-
 		this.set_allocation (allocation);
 		position_children ();
 
@@ -537,11 +538,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.update_bin_window ();
 		}
 
-		ensure_visible_widgets ();
-		//last_x = allocation.x;
-		//last_y = allocation.y;
-		//last_width = allocation.width;
-		//last_height = allocation.height;
+		// Will call ensure_widgets if needed...
+		configure_adjustment ();
 	}
 
 	public override void realize ()
@@ -963,9 +961,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			message ("model_to: %d", model_to);
 
 			this.configure_adjustment ();
+      int bin_y_b = bin_y ();
 			//this.bin_y_diff = -(int)this._vadjustment.upper + (int)this._vadjustment.page_size + bin_y ();
-			//this.bin_y_diff = (int)this._vadjustment.upper + (int)this._vadjustment.page_size - bin_height;
-			this.bin_y_diff = (int)this.vadjustment.upper - bin_height;
+			this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
 			message ("bin_height: %d, upper: %f", bin_height, this._vadjustment.upper);
 		}
 
