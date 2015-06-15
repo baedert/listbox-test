@@ -192,12 +192,11 @@ class DemoWindow : Gtk.Window {
 
 
     try {
-
-    var provider = new Gtk.CssProvider ();
-    provider.load_from_data (".list-row { border-bottom: 1px solid alpha(grey, 0.3);}",-1);
-    Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (),
-                                              provider,
-                                              Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+			var provider = new Gtk.CssProvider ();
+			provider.load_from_data (".list-row { border-bottom: 1px solid alpha(grey, 0.3);}",-1);
+			Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (),
+																								provider,
+																								Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
     } catch (GLib.Error e) {
       error (e.message);
     }
@@ -206,7 +205,7 @@ class DemoWindow : Gtk.Window {
 
 
     //for (int i = 0; i < 5000; i ++)
-    for (int i = 0; i < 7; i ++)
+    for (int i = 0; i < 15; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);

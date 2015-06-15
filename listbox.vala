@@ -143,7 +143,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		this.model_to = -1;
 		this.bin_y_diff = 0;
 		this._vadjustment.value = 0;
-		//this.ensure_visible_widgets ();
+		this.ensure_visible_widgets ();
 	}
 
 	private Gtk.Widget? get_next_widget (uint start_index,
