@@ -354,7 +354,7 @@
                     <child>
                       <object class="GtkButton" id="debug_button">
                         <property name="visible">true</property>
-                        <property name="label">Print Debug Info</property>
+                        <property name="label">Animate full scroll</property>
                         <signal name="clicked" handler="debug_cb" />
                       </object>
                       <packing>

@@ -104,9 +104,6 @@ class TweetRow : Gtk.ListBoxRow {
     this.text_label.label = item.text;
   }
 
-  public void set_label (string s) {
-    text_label.label = s;
-  }
 
   public override bool draw (Cairo.Context ct) {
     ct.set_source_rgba (1, 1, 1, 1);
@@ -284,7 +281,12 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void debug_cb () {
-    this.list_box.print_debug_info ();
+    //this.list_box.print_debug_info ();
+    GLib.Timeout.add (10, () => {
+      list_box.vadjustment.value ++;
+
+      return list_box.vadjustment.value < list_box.vadjustment.upper - list_box.vadjustment.page_size;
+    });
   }
 
   [GtkCallback]
