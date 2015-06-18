@@ -147,7 +147,7 @@ class FileRow : Gtk.ListBoxRow {
 
 		this.icon_image.pixbuf = null;
 
-		this.load_id = GLib.Timeout.add (100, () => {
+		//this.load_id = GLib.Timeout.add (100, () => {
 			var icon_theme = Gtk.IconTheme.get_default ();
 
 			try {
@@ -156,9 +156,9 @@ class FileRow : Gtk.ListBoxRow {
 																											 Gtk.IconLookupFlags.FORCE_SIZE);
 			} catch (GLib.Error e) {}
 
-			this.load_id = -1;
-			return GLib.Source.REMOVE;
-		});
+			//this.load_id = -1;
+			//return GLib.Source.REMOVE;
+		//});
 	}
 }
 

@@ -202,6 +202,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		return get_next_widget (this.model_to + 1, null) == null;
 	}
 
+	private bool start_reached ()
+	{
+		return get_prev_widget (this.model_from - 1, null) == null;
+	}
+
 
 	private Gtk.Widget? get_old_widget ()
 	{
@@ -808,8 +813,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		bool added = false;
 		// Insert widgets at top
 		while (bin_y () > 0 && model_from > 0) {
-			uint new_model_from;
+			int new_model_from;
 			var new_widget = get_prev_widget (model_from - 1, out new_model_from);
+			message (":: adding widget starting from %d, resulting in %d", model_from, new_model_from);
 			assert (new_widget != null);
 			this.model_from = (int)new_model_from;
 			this.insert_child_internal (new_widget, 0);
@@ -822,6 +828,41 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			}
 			added = true;
 		}
+		return added;
+	}
+
+	private bool insert_needed_bottom_widget (ref int bin_height, bool start = false)
+	{
+		bool added = false;
+		while (bin_y () + bin_height < this.get_allocated_height () &&
+		       model_to < (int)model.get_n_items () - 1) {
+			uint new_model_to;
+			var new_widget = get_next_widget (model_to + 1, out new_model_to);
+			if (new_widget == null) {
+				this.model_to = (int)this.model.get_n_items () - 1;
+				// XXX At this point, the widgets could hang into the window
+				//     because we just didn't have enough widgets to fill it.
+				message ("END OF LIST : %d", this.bin_y_diff);
+				if (this.widgets.size == 0 ||
+					bin_height < this.get_allocated_height ())
+				  this.bin_y_diff = 0;
+				else
+				  this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
+				message ("bin_y now: %d", bin_y());
+				insert_needed_top_widgets (ref bin_height, true);
+				break;
+			}
+			this.insert_child_internal (new_widget, this.widgets.size);
+
+			message ("INSERT AT BOTTOM for model_to %d (of %u)", (int)new_model_to,
+			         this.model.get_n_items ());
+			this.model_to = (int)new_model_to;
+			added = true;
+			int min;
+			min = get_widget_height (new_widget);
+			bin_height += min;
+		}
+
 		return added;
 	}
 
@@ -961,10 +1002,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			message ("model_to: %d", model_to);
 
 			this.configure_adjustment ();
-      int bin_y_b = bin_y ();
-			//this.bin_y_diff = -(int)this._vadjustment.upper + (int)this._vadjustment.page_size + bin_y ();
 			this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
 			message ("bin_height: %d, upper: %f", bin_height, this._vadjustment.upper);
+		}
+
+		if (start_reached () && bin_y () > 0) {
+			message ("START REACHED");
+			this.model_from = 0;
+			this.configure_adjustment ();
+			this.bin_y_diff = 0;
 		}
 
 
@@ -1057,34 +1103,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 		// Insert widgets at bottom
-		while (bin_y () + bin_height < this.get_allocated_height () &&
-		       model_to < (int)model.get_n_items () - 1) {
-			uint new_model_to;
-			var new_widget = get_next_widget (model_to + 1, out new_model_to);
-			if (new_widget == null) {
-				this.model_to = (int)this.model.get_n_items () - 1;
-				// XXX At this point, the widgets could hang into the window
-				//     because we just didn't have enough widgets to fill it.
-				message ("END OF LIST : %d", this.bin_y_diff);
-				if (this.widgets.size == 0 ||
-					bin_height < this.get_allocated_height ())
-				  this.bin_y_diff = 0;
-				else
-				  this.bin_y_diff = (int)this._vadjustment.upper - bin_height;
-				message ("bin_y now: %d", bin_y());
-				insert_needed_top_widgets (ref bin_height, true);
-				break;
-			}
-			this.insert_child_internal (new_widget, this.widgets.size);
-
-			message ("INSERT AT BOTTOM for model_to %d (of %u)", (int)new_model_to,
-			         this.model.get_n_items ());
-			assert (!bottom_removed);
-			this.model_to = (int)new_model_to;
-			int min;
-			min = get_widget_height (new_widget);
-			bin_height += min;
-		}
+		insert_needed_bottom_widget (ref bin_height);
 		// }}}
 
 		// XXX Maybe optimize this out if nothing changed?
