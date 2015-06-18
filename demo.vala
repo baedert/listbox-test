@@ -66,8 +66,8 @@ string random_text () {
     char r_c = (char) (96 + GLib.Random.int_range (0, 128-97));
     b.append_c (r_c);
   }
-  //return b.str;
-  return "bbb";
+  return b.str;
+  //return "bbb";
 }
 
 // }}}
@@ -192,11 +192,11 @@ class DemoWindow : Gtk.Window {
 
 
     try {
-			var provider = new Gtk.CssProvider ();
-			provider.load_from_data (".list-row { border-bottom: 1px solid alpha(grey, 0.3);}",-1);
-			Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (),
-																								provider,
-																								Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+      var provider = new Gtk.CssProvider ();
+      provider.load_from_data (".list-row { border-bottom: 1px solid alpha(grey, 0.3);}",-1);
+      Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (),
+                                                provider,
+                                                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
     } catch (GLib.Error e) {
       error (e.message);
     }
@@ -205,7 +205,7 @@ class DemoWindow : Gtk.Window {
 
 
     //for (int i = 0; i < 5000; i ++)
-    for (int i = 0; i < 15; i ++)
+    for (int i = 0; i < 10; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);
@@ -268,7 +268,7 @@ class DemoWindow : Gtk.Window {
         assert (item != null);
         var sample = (SampleModelItem) item;
 
-        return sample.num % 2 == 0;
+        return sample.text.contains ("x");
       };
       list_box.refilter ();
     } else {
