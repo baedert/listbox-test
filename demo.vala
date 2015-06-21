@@ -1,4 +1,5 @@
 
+const int NUM = 5;
 
 
 // Model {{{
@@ -101,7 +102,11 @@ class TweetRow : Gtk.ListBoxRow {
   public void assign (SampleModelItem item) {
     this.num = item.num;
     this.time_delta_label.label = this.num.to_string ();
-    this.text_label.label = item.text;
+    //this.text_label.label = item.text;
+    if (item.num < NUM-2)
+      this.set_size_request (-1, 200);
+    else
+      this.set_size_request (-1, 50);
   }
 
 
@@ -202,7 +207,7 @@ class DemoWindow : Gtk.Window {
 
 
     //for (int i = 0; i < 5000; i ++)
-    for (int i = 0; i < 10; i ++)
+    for (int i = 0; i < NUM; i ++)
       model.append (new SampleModelItem (i, 20 + (i * 10)));
 
     list_box.set_model (model);
@@ -265,7 +270,8 @@ class DemoWindow : Gtk.Window {
         assert (item != null);
         var sample = (SampleModelItem) item;
 
-        return sample.text.contains ("x");
+        //return sample.text.contains ("x");
+        return sample.num % 2 == 0;
       };
       list_box.refilter ();
     } else {
