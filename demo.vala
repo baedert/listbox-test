@@ -1,5 +1,5 @@
 
-const int NUM = 10;
+const int NUM = 6;
 
 
 // Model {{{
@@ -102,11 +102,11 @@ class TweetRow : Gtk.ListBoxRow {
   public void assign (SampleModelItem item) {
     this.num = item.num;
     this.time_delta_label.label = this.num.to_string ();
-    //this.text_label.label = item.text;
-    if (item.num < NUM-2)
-      this.set_size_request (-1, 200);
-    else
-      this.set_size_request (-1, 50);
+   //this.text_label.label = item.text;
+	if (item.num < NUM-2)
+	  this.set_size_request (-1, 200);
+	else
+      this.set_size_request (-1, 80);
   }
 
 
@@ -270,7 +270,6 @@ class DemoWindow : Gtk.Window {
         assert (item != null);
         var sample = (SampleModelItem) item;
 
-        //return sample.text.contains ("x");
         return sample.num % 2 == 0;
       };
       list_box.refilter ();
@@ -289,7 +288,7 @@ class DemoWindow : Gtk.Window {
   private void debug_cb () {
     //this.list_box.print_debug_info ();
     GLib.Timeout.add (10, () => {
-      list_box.vadjustment.value ++;
+      list_box.vadjustment.value += 4;
 
       return list_box.vadjustment.value < list_box.vadjustment.upper - list_box.vadjustment.page_size;
     });
@@ -302,6 +301,7 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void scroll_down_cb () {
+	message ("========================= SCROLL DOWN ==================");
     scroller.get_vadjustment ().value ++;
   }
 }
