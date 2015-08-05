@@ -675,8 +675,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		//message ("Exact: %d", exact_height);
 
-		top_part     = (int)(top_widgets    * widget_height);// * filter_factor);
-		bottom_part  = (int)(bottom_widgets * widget_height);// * filter_factor);
+		top_part     = (int)(top_widgets    * widget_height * filter_factor);
+		bottom_part  = (int)(bottom_widgets * widget_height * filter_factor);
 		widgets_part = exact_height;
 
 		//widgets_part = (int)(model_range () * widget_height * filter_factor);
@@ -702,7 +702,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		message ("h: %d (%d, %d)", (int)max ((uint)h, (uint)min_list_height), h, min_list_height);
 
-		h = (int) max (h, min_list_height);
+		//h = (int) max (h, min_list_height);
 
 		// DEBUG
 		this.estimated_height = h;
