@@ -265,18 +265,18 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void filter_cb () {
-    if (this.filter_switch.active) {
-      list_box.filter_func = (item) => {
-        assert (item != null);
-        var sample = (SampleModelItem) item;
+    //if (this.filter_switch.active) {
+      //list_box.filter_func = (item) => {
+        //assert (item != null);
+        //var sample = (SampleModelItem) item;
 
-        return sample.num % 2 == 0;
-      };
-      list_box.refilter ();
-    } else {
-      list_box.filter_func = null;
-      list_box.refilter ();
-    }
+        //return sample.num % 2 == 0;
+      //};
+      //list_box.refilter ();
+    //} else {
+      //list_box.filter_func = null;
+      //list_box.refilter ();
+    //}
   }
 
   [GtkCallback]

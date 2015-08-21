@@ -15,8 +15,6 @@
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
 
-delegate bool ItemFilterFunc (GLib.Object item);
-
 
 class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private Gee.ArrayList<Gtk.Widget> widgets = new Gee.ArrayList<Gtk.Widget> ();
@@ -24,7 +22,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private Gdk.Window bin_window;
 	private GLib.ListModel model;
 	public WidgetFillFunc fill_func;
-	public ItemFilterFunc? filter_func = null;
 	private int _bin_y_diff = 0;// distance between -vadjustment.value and bin_y
 	public int bin_y_diff {
 		get {
@@ -133,39 +130,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	public void refilter ()
-	{
-	  	message ("==== REFILTER ===");
-
-		// XXX Actually implement this.
-		this.remove_all_widgets ();
-		this.update_bin_window ();
-		this.model_from = 0;
-		this.model_to = -1;
-		this.bin_y_diff = 0;
-		this._vadjustment.value = 0;
-		this.ensure_visible_widgets ();
-	}
-
 	private Gtk.Widget? get_next_widget (uint start_index,
 	                                     out uint selected_index)
 	{
-		uint unfiltered_index = start_index;
+    uint unfiltered_index = start_index;
 
-		if (this.filter_func != null) {
-			while (unfiltered_index < this.model.get_n_items () &&
-				   !this.filter_func (this.model.get_object (unfiltered_index)))
-				unfiltered_index ++;
-		}
+		//if (this.filter_func != null) {
+			//while (unfiltered_index < this.model.get_n_items () &&
+					 //!this.filter_func (this.model.get_object (unfiltered_index)))
+				//unfiltered_index ++;
+		//}
 
-		assert (unfiltered_index >= start_index);
+		//assert (unfiltered_index >= start_index);
 
-		selected_index = unfiltered_index;
+    selected_index = unfiltered_index;
 
-		if (unfiltered_index >= this.model.get_n_items ())
-			return null;
+		//if (unfiltered_index >= this.model.get_n_items ())
+			//return null;
 
-		assert (unfiltered_index < model.get_n_items ());
+		//assert (unfiltered_index < model.get_n_items ());
 
 		var item = model.get_object (unfiltered_index);
 		assert (item != null);
@@ -179,13 +162,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	{
 		int unfiltered_index = start_index;
 		//message ("Start index: %d", start_index);
-
-		if (this.filter_func != null) {
-			while (unfiltered_index >= 0 &&
-			       !this.filter_func (this.model.get_object (unfiltered_index))) {
-				unfiltered_index --;
-			}
-		}
 
 		assert (unfiltered_index <= start_index);
 
@@ -644,16 +620,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (widget_height >= 0);
 		assert (model_from >= 0);
 
-		float filter_factor;
-		if (this.filter_func == null)
-			filter_factor = 1.0f;
-		else {
-			if (this.widgets.size > 0)
-				filter_factor = (float)this.widgets.size / (float)(model_range ());
-			else
-				filter_factor = 1.0f;
-		}
-
+		float filter_factor = 1.0f;
 
 
 		int top_widgets    = model_from;
@@ -662,7 +629,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (top_widgets >= 0);
 		assert (bottom_widgets >= 0);
 
-		if (this.filter_func == null)
+		//if (this.filter_func == null)
 			assert (top_widgets + bottom_widgets + this.widgets.size == (int)this.model.get_n_items ());
 
 		int exact_height = 0;
@@ -1140,7 +1107,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		// This should also alwways be true
 
-		if (this.filter_func == null)
+		//if (this.filter_func == null)
 			assert (this.widgets.size == (model_to - model_from + 1));
 
 		assert (model_to <= model.get_n_items () -1);
