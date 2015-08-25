@@ -1,5 +1,5 @@
 
-const int NUM = 6;
+  const int NUM = 6;
 
 
 // Model {{{
@@ -102,10 +102,10 @@ class TweetRow : Gtk.ListBoxRow {
   public void assign (SampleModelItem item) {
     this.num = item.num;
     this.time_delta_label.label = this.num.to_string ();
-   //this.text_label.label = item.text;
-	if (item.num < NUM-2)
-	  this.set_size_request (-1, 200);
-	else
+    //this.text_label.label = item.text;
+    if (item.num < NUM-2)
+     this.set_size_request (-1, 200);
+    else
       this.set_size_request (-1, 80);
   }
 
