@@ -19,15 +19,23 @@ class FileData : GLib.Object
 class FileModel : GLib.Object, GLib.ListModel
 {
 	private Gee.ArrayList<FileData> files = new Gee.ArrayList<FileData> ();
+	private Gee.ArrayList<int>      filtered_view = new Gee.ArrayList<int> ();
 	private bool dirs_before_files = true;
+	private string? filter_text;
 
 	public uint get_n_items ()
 	{
+		if (this.filter_text != null) {
+			return this.filtered_view.size;
+		}
 		return this.files.size;
 	}
 
 	public GLib.Object? get_item (uint index)
 	{
+		if (this.filter_text != null) {
+			return this.files.get (filtered_view.get ((int)index));
+		}
 		return this.files.get ((int)index);
 	}
 
@@ -52,11 +60,32 @@ class FileModel : GLib.Object, GLib.ListModel
 		this.items_changed (files.size - 1, 0, 1);
 	}
 
+	public void apply_filter (string filter)
+	{
+		if (filter == null || filter.length == 0) {
+			this.filter_text = null;
+			this.items_changed (0, this.filtered_view.size, this.files.size);
+			return;
+		}
+
+
+		this.filter_text = filter;
+		this.filtered_view.clear ();
+		// Filter all current entries
+		for (int i = 0, p = files.size; i < p; i ++) {
+			if (files.get (i).filename.down ().contains (filter)) {
+				filtered_view.add (i);
+			}
+		}
+		this.items_changed (0, this.files.size, this.filtered_view.size);
+	}
+
+
+
 	private bool loading = false;
 
-	public async void scan_dir (string path)
+	public async void scan_dir (string path) throws GLib.Error
 	{
-
 		message ("scanning %s", path);
 		//if (loading)
 		  //return;
@@ -74,7 +103,7 @@ class FileModel : GLib.Object, GLib.ListModel
 		                                            GLib.Priority.DEFAULT);
 
 		while (true) {
-			var files = yield e.next_files_async (2, Priority.DEFAULT);
+			var files = yield e.next_files_async (20, Priority.DEFAULT);
 			if (files == null) {
 				loading = false;
 				break;
@@ -87,9 +116,9 @@ class FileModel : GLib.Object, GLib.ListModel
 				fd.is_dir = false;
 				fd.filename = info.get_name ();
 				fd.full_path = e.get_child (info).get_path ();
-        fd.icon = (GLib.ThemedIcon) info.get_icon ();
+				fd.icon = (GLib.ThemedIcon) info.get_icon ();
 				if (info.get_file_type () == GLib.FileType.DIRECTORY) {
-					yield scan_dir (e.get_child (info).get_path ());
+					//yield scan_dir (e.get_child (info).get_path ());
 				}
 				message ("Appending...");
 				this.append (fd);
@@ -195,7 +224,7 @@ void main (string[] args)
 	filter_entry.hexpand = true;
 	filter_entry.placeholder_text = "Filter";
 	filter_entry.buffer.notify["text"].connect (() => {
-		list_box.refilter ();
+		list_model.apply_filter (filter_entry.get_text ());
 	});
 	grid.attach (filter_entry, 0, 1, 2, 1);
 
@@ -210,11 +239,6 @@ void main (string[] args)
 	list_box.set_model (list_model);
 	list_box.hexpand = true;
 	list_box.vexpand = true;
-	list_box.filter_func = (item) => {
-		FileData fd = (FileData) item;
-		string s = filter_entry.text;
-		return fd.filename.down ().contains (s.down ());
-	};
 	list_box.fill_func = (item, old) => {
 		FileRow row = (FileRow) old;
 		if (row == null)
@@ -230,6 +254,17 @@ void main (string[] args)
 	var scroller = new Gtk.ScrolledWindow (null, null);
 	scroller.add (list_box);
 	grid.attach (scroller, 0, 2, 2, 1);
+
+
+
+	var items_label = new Gtk.Label ("Items: 0");
+	items_label.halign = Gtk.Align.START;
+
+	list_model.items_changed.connect (() => {
+		items_label.label = "Items: %u".printf (list_model.get_n_items ());
+	});
+	grid.attach (items_label, 0, 3, 1, 1);
+
 
 	window.add (grid);
 	window.resize (600, 400);
