@@ -1015,7 +1015,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (this.bin_y_diff >= 0);
 		if (bin_y () > 0)
 		  message ("bin_y: %d", bin_y ());
-		//assert (bin_y () <= 0);
+		assert (bin_y () <= 0);
 
 		// is the lower bound of bin_window in our viewport? It shouldn't.
 		if (model_range () != this.model.get_n_items ()) {

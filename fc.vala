@@ -33,21 +33,42 @@ class FontModel : GLib.Object, GLib.ListModel {
 		}
 	}
 
+	/* XXX We don't support changing the model while a filter is set here. */
 	public void apply_filter (string? filter)
 	{
 		this.filter = filter;
 
 		if (filter == null || filter.length == 0) {
 			this.items_changed (0, this.filtered_view.size, this.fonts.size);
+			this.filtered_view.clear ();
+			this.filter = null;
 			return;
 		}
+
+		int filtered_before = this.filtered_view.size;
+
+		this.filtered_view.clear ();
+
+		for (int i = 0, p = this.fonts.size; i < p; i ++) {
+			if (fonts.get (i).desc.get_family ().down ().contains (filter.down())) {
+				filtered_view.add (i);
+			}
+		}
+
+		if (filtered_before > 0) {
+			//message ("1: %d, %d", filtered_before, this.filtered_view.size);
+			this.items_changed (0, filtered_before, this.filtered_view.size);
+		} else {
+			this.items_changed (0, this.fonts.size, this.filtered_view.size);
+		}
+
 	}
 
 
 	public void load_fonts ()
 	{
 		var font_map = Pango.CairoFontMap.get_default ();
-		Pango.FontFamily?[] families;
+		Pango.FontFamily[] families;
 		font_map.list_families (out families);
 
 		int n = 0;
@@ -66,13 +87,19 @@ class FontModel : GLib.Object, GLib.ListModel {
 		message ("Got %d fonts", n);
 
 
-		//if (n > 0)
-			//assert (this.fonts.get (0).desc != null);
+		if (n > 0)
+			assert (this.fonts.get (0).desc != null);
 
 		this.items_changed (0, 0, n);
 	}
 }
 
+
+/*
+	XXX XXX XXX XXX XXX XXX XXX XXX
+	Make sure the pango.vapi is fixed!
+	XXX XXX XXX XXX XXX XXX XXX XXX
+ */
 
 
 void main (string[] args)
@@ -95,7 +122,7 @@ void main (string[] args)
 
 		FontData data = (FontData) item;
 
-		l.set_label ("%d: The quick brown fox jumps over the lazy dog.".printf (data.index));
+		l.set_label ("%d: %s".printf (data.index, data.desc.get_family ()));
 		l.margin = 6;
 		l.halign = Gtk.Align.START;
 		l.xalign = 0.0f;
@@ -115,6 +142,15 @@ void main (string[] args)
 		window.title = "Font Chooser (%d items)".printf (n_items);
 	});
 
+	list.size_allocate.connect (() => {
+		window.title = "Font Chooser (%d items, %d -- %d)".printf ((int)model.get_n_items (),
+																   list.model_from,
+																   list.model_to);
+	});
+
+	filter_entry.buffer.notify["text"].connect (() => {
+		model.apply_filter (filter_entry.get_text ());
+	});
 
 
 	scroller.add (list);
