@@ -24,6 +24,7 @@ public class Bench {
 class FontData : GLib.Object {
 	public Pango.FontFace face;
 	public Pango.FontDescription? desc = null;
+	public string display_text;
 	public int index;
 }
 
@@ -76,7 +77,7 @@ class FontModel : GLib.Object, GLib.ListModel {
 		this.filtered_view.clear ();
 
 		for (int i = 0, p = this.fonts.size; i < p; i ++) {
-			if (fonts.get (i).desc.get_family ().down ().contains (filter.down())) {
+			if (fonts.get (i).display_text.down ().contains (filter.down())) {
 				filtered_view.add (i);
 			}
 		}
@@ -104,9 +105,12 @@ class FontModel : GLib.Object, GLib.ListModel {
 			if (faces != null && faces.length == 0)
 			  continue;
 
+			string family_name = family.get_name ();
+
 			for (int i = 0; i < faces.length; i ++) {
 				var data = new FontData ();
 				data.face = faces[i];
+				data.display_text = family_name + " " + faces[i].get_face_name ();
 				//data.desc = faces[i].describe ();
 				data.index = n;
 				this.fonts.add (data);
@@ -158,7 +162,8 @@ class Row : Gtk.ListBoxRow {
 		this.sample_label.set_attributes (attrs);
 		this.sample_label.set_label ("The quick brown fox jumps over the lazy dog.");
 
-		this.name_label.set_label ("%d: %s".printf (data.index, data.desc.get_family ()));
+		this.name_label.set_label ("%d: %s".printf (data.index, data.display_text));
+
 	}
 }
 
