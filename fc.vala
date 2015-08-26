@@ -101,6 +101,39 @@ class FontModel : GLib.Object, GLib.ListModel {
  */
 
 
+class Row : Gtk.ListBoxRow {
+	public Gtk.Label sample_label;
+	public Gtk.Label name_label;
+	public Row () {
+		var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
+
+		this.sample_label = new Gtk.Label ("");
+		this.sample_label.halign = Gtk.Align.START;
+		this.sample_label.xalign = 0.0f;
+		this.sample_label.ellipsize = Pango.EllipsizeMode.END;
+		this.name_label = new Gtk.Label ("");
+		this.name_label.halign = Gtk.Align.START;
+		this.name_label.get_style_context ().add_class ("dim-label");
+
+		box.add (sample_label);
+		box.add (name_label);
+
+		box.margin = 6;
+		this.add (box);
+	}
+
+	public void assign (FontData data) {
+		var attrs = new Pango.AttrList ();
+		attrs.insert (new Pango.AttrFontDesc (data.desc));
+		attrs.insert (new Pango.AttrSize (14 * Pango.SCALE));
+		this.sample_label.set_attributes (attrs);
+		this.sample_label.set_label ("The quick brown fox jumps over the lazy dog.");
+
+		this.name_label.set_label ("%d: %s".printf (data.index, data.desc.get_family ()));
+	}
+}
+
+
 void main (string[] args)
 {
 	Gtk.init (ref args);
@@ -114,26 +147,31 @@ void main (string[] args)
 	list.set_model (model);
 
 
+	try {
+		var provider = new Gtk.CssProvider ();
+		provider.load_from_data (".list-row { border-bottom: 1px solid alpha(grey, 0.3);}",-1);
+		Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (),
+		                                          provider,
+		                                          Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+	} catch (GLib.Error e) {
+		error (e.message);
+	}
+
+
+
+
+
 	list.fill_func = (item, old_widget) => {
-		Gtk.Label? l = (Gtk.Label)old_widget;
-		if (l == null)
-		  l = new Gtk.Label ("");
+		Row? row = (Row)old_widget;
+		if (row == null)
+		  row = new Row ();
 
 		FontData data = (FontData) item;
 
-		l.set_label ("%d: %s".printf (data.index, data.desc.get_family ()));
-		l.margin = 6;
-		l.halign = Gtk.Align.START;
-		l.xalign = 0.0f;
-		l.ellipsize = Pango.EllipsizeMode.END;
+		row.assign (data);
+		row.show_all ();
 
-		var attrs = new Pango.AttrList ();
-		attrs.insert (new Pango.AttrFontDesc (data.desc));
-		attrs.insert (new Pango.AttrSize (20 * Pango.SCALE));
-		l.set_attributes (attrs);
-
-		l.show ();
-		return l;
+		return row;
 	};
 
 	model.items_changed.connect (() => {
