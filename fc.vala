@@ -1,8 +1,33 @@
 
+public class Bench {
+	public string name;
+	public GLib.DateTime first;
+
+	public void stop () {
+		var ts = new GLib.DateTime.now_local ().difference (first);
+		int64 ms = (ts / 1000);
+
+		message (@"$(this.name) took $ms ms");
+	}
+
+
+	public static Bench start (string name) {
+		var b = new Bench ();
+
+		b.name = name;
+		b.first = new GLib.DateTime.now_local ();
+		return b;
+	}
+}
+
+
 class FontData : GLib.Object {
 	public Pango.FontDescription desc;
 	public int index;
 }
+
+
+
 
 class FontModel : GLib.Object, GLib.ListModel {
 	private Gee.ArrayList<FontData> fonts = new Gee.ArrayList<FontData> ();
@@ -63,9 +88,10 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 	}
 
-
 	public void load_fonts ()
 	{
+		  var b = Bench.start ("Loading fonts");
+
 		var font_map = Pango.CairoFontMap.get_default ();
 		Pango.FontFamily[] families;
 		font_map.list_families (out families);
@@ -85,6 +111,8 @@ class FontModel : GLib.Object, GLib.ListModel {
 				n ++;
 			}
 		}
+
+		b.stop ();
 
 		message ("Got %d fonts", n);
 
