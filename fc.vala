@@ -76,11 +76,14 @@ class FontModel : GLib.Object, GLib.ListModel {
 			family.list_faces (out faces);
 			if (faces != null && faces.length == 0)
 			  continue;
-			var data = new FontData ();
-			data.desc = faces[0].describe ();
-			data.index = n;
-			this.fonts.add (data);
-			n ++;
+
+			for (int i = 0; i < faces.length; i ++) {
+				var data = new FontData ();
+				data.desc = faces[i].describe ();
+				data.index = n;
+				this.fonts.add (data);
+				n ++;
+			}
 		}
 
 		message ("Got %d fonts", n);
