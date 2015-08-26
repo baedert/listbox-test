@@ -39,9 +39,9 @@ class FontModel : GLib.Object, GLib.ListModel {
 		this.filter = filter;
 
 		if (filter == null || filter.length == 0) {
-			this.items_changed (0, this.filtered_view.size, this.fonts.size);
 			this.filtered_view.clear ();
 			this.filter = null;
+			this.items_changed (0, this.filtered_view.size, this.fonts.size);
 			return;
 		}
 
@@ -56,7 +56,6 @@ class FontModel : GLib.Object, GLib.ListModel {
 		}
 
 		if (filtered_before > 0) {
-			//message ("1: %d, %d", filtered_before, this.filtered_view.size);
 			this.items_changed (0, filtered_before, this.filtered_view.size);
 		} else {
 			this.items_changed (0, this.fonts.size, this.filtered_view.size);
