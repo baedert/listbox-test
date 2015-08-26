@@ -22,7 +22,8 @@ public class Bench {
 
 
 class FontData : GLib.Object {
-	public Pango.FontDescription desc;
+	public Pango.FontFace face;
+	public Pango.FontDescription? desc = null;
 	public int index;
 }
 
@@ -90,7 +91,7 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 	public void load_fonts ()
 	{
-		  var b = Bench.start ("Loading fonts");
+		var b = Bench.start ("Loading fonts");
 
 		var font_map = Pango.CairoFontMap.get_default ();
 		Pango.FontFamily[] families;
@@ -105,7 +106,8 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 			for (int i = 0; i < faces.length; i ++) {
 				var data = new FontData ();
-				data.desc = faces[i].describe ();
+				data.face = faces[i];
+				//data.desc = faces[i].describe ();
 				data.index = n;
 				this.fonts.add (data);
 				n ++;
@@ -115,10 +117,6 @@ class FontModel : GLib.Object, GLib.ListModel {
 		b.stop ();
 
 		message ("Got %d fonts", n);
-
-
-		if (n > 0)
-			assert (this.fonts.get (0).desc != null);
 
 		this.items_changed (0, 0, n);
 	}
@@ -199,6 +197,9 @@ void main (string[] args)
 
 		FontData data = (FontData) item;
 
+		if (data.desc == null)
+		  data.desc = data.face.describe ();
+
 		row.assign (data);
 		row.show_all ();
 
@@ -211,9 +212,10 @@ void main (string[] args)
 	});
 
 	list.size_allocate.connect (() => {
-		window.title = "Font Chooser (%d items, %d -- %d)".printf ((int)model.get_n_items (),
-																   list.model_from,
-																   list.model_to);
+		window.title = "Font Chooser (%d items, %d -- %d, estimate: %d)".printf ((int)model.get_n_items (),
+		                                                                         list.model_from,
+		                                                                         list.model_to,
+		                                                                         list.estimated_height);
 	});
 
 	filter_entry.buffer.notify["text"].connect (() => {
