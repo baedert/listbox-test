@@ -90,6 +90,7 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 	}
 
+	private const int LIMIT = 40;
 	public void load_fonts ()
 	{
 		var b = Bench.start ("Loading fonts");
@@ -111,11 +112,12 @@ class FontModel : GLib.Object, GLib.ListModel {
 				var data = new FontData ();
 				data.face = faces[i];
 				data.display_text = family_name + " " + faces[i].get_face_name ();
-				//data.desc = faces[i].describe ();
 				data.index = n;
 				this.fonts.add (data);
 				n ++;
 			}
+			if (n > LIMIT)
+			  break;
 		}
 
 		b.stop ();
@@ -237,6 +239,7 @@ void main (string[] args)
 	box.margin = 6;
 	window.add (box);
 	window.resize (600, 800);
+	window.delete_event.connect (() => { Gtk.main_quit (); return true;});
 	window.show_all ();
 
 	model.load_fonts ();
