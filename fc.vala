@@ -90,7 +90,7 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 	}
 
-	private const int LIMIT = 40;
+	private const int LIMIT = 20;
 	public void load_fonts ()
 	{
 		var b = Bench.start ("Loading fonts");
@@ -238,7 +238,7 @@ void main (string[] args)
 
 	box.margin = 6;
 	window.add (box);
-	window.resize (600, 800);
+	window.resize (400, 400);
 	window.delete_event.connect (() => { Gtk.main_quit (); return true;});
 	window.show_all ();
 
