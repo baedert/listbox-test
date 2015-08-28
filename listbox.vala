@@ -639,26 +639,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	private void fix_bin_y_diff ()
-	{
-
-		//int bin_height = this.bin_window.get_height ();
-
-
-		//if (bin_y_diff < 0) {
-			//int d = -bin_y_diff;
-			//assert (d > 0);
-
-			//this.bin_y_diff = 0;
-			//this._vadjustment.value += d;
-		//}
-		//else if (model_to == (int)model.get_n_items () - 1 &&
-				   //bin_y () + bin_height < this.get_allocated_height ()) {
-			//this.bin_y_diff = (int)this._vadjustment.get_upper () - bin_height;
-		//}
-	}
-
-
 	private bool insert_top_widgets (ref int bin_height,
                                      bool end = false)
 	{
@@ -722,7 +702,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			int min = get_widget_height (new_widget);
 			message ("new bin_height: %d -> %d", bin_height, bin_height + min);
 			bin_height += min;
-			fix_bin_y_diff ();
 			added = true;
 		}
 
