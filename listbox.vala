@@ -499,8 +499,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (top_widgets >= 0);
 		assert (bottom_widgets >= 0);
 
-		message ("%d + %d + %d == %d", top_widgets, bottom_widgets, this.widgets.size,
-		         (int)this.model.get_n_items ());
+		//message ("%d + %d + %d == %d", top_widgets, bottom_widgets, this.widgets.size,
+				 //(int)this.model.get_n_items ());
 		assert (top_widgets + bottom_widgets + this.widgets.size == (int)this.model.get_n_items ());
 
 		int exact_height = 0;
@@ -529,7 +529,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		//message ("h: %d (%d, %d)", (int)max ((uint)h, (uint)min_list_height), h, min_list_height);
 
-		h = (int) max (h, min_list_height);
+		//h = (int) max (h, min_list_height);
 
 		// DEBUG
 		this.estimated_height = h;

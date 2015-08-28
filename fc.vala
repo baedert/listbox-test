@@ -208,7 +208,10 @@ void main (string[] args)
 		  data.desc = data.face.describe ();
 
 		row.assign (data);
-		row.show_all ();
+		if (data.index < 10)
+		  row.show_all ();
+		else
+		  row.hide ();
 
 		return row;
 	};
@@ -234,7 +237,25 @@ void main (string[] args)
 	scroller.vexpand = true;
 	box.add (scroller);
 
-	box.add (filter_entry);
+	var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+	bbox.hexpand = true;
+	bbox.get_style_context ().add_class ("linked");
+	filter_entry.hexpand = true;
+	bbox.add (filter_entry);
+
+	var up_btn = new Gtk.Button.with_label ("up");
+	up_btn.clicked.connect (() => {
+		scroller.get_vadjustment ().value --;
+	});
+	bbox.add (up_btn);
+
+	var down_btn = new Gtk.Button.with_label ("down");
+	down_btn.clicked.connect (() => {
+		scroller.get_vadjustment ().value ++;
+	});
+	bbox.add (down_btn);
+
+	box.add (bbox);
 
 	box.margin = 6;
 	window.add (box);
