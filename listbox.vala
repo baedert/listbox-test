@@ -466,12 +466,16 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private inline int estimated_widget_height ()
 	{
 		int average_widget_height = 0;
+		int used_widgets = 0;
 
 		if (this.widgets.size > 0) {
 			foreach (var w in this.widgets) {
-				average_widget_height += get_widget_height (w);
+				if (w.visible) {
+					average_widget_height += get_widget_height (w);
+					used_widgets ++;
+				}
 			}
-			average_widget_height /= this.widgets.size;
+			average_widget_height /= used_widgets;
 
 			this.last_valid_widget_height = average_widget_height;
 		} else
