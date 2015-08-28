@@ -42,7 +42,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			return this._bin_y_diff;
 		}
 		set {
-			message ("Setting bin_y_diff from %d to %d", this._bin_y_diff, value);
+			message ("Setting bin_y_diff from %d to %d. bin_y now: %d", this._bin_y_diff, value,
+			         -((int)this._vadjustment.value) + this._bin_y_diff);
 			this._bin_y_diff = value;
 			assert (this._bin_y_diff >= 0);
 		}
@@ -175,52 +176,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	private void remove_visible_widgets (int pos, int count)
-	{
-		// Remove the specified amount of widgets,
-		// moving all of the below widgets down and
-		// adjusting model_to/model_from accordingly
-		int cur = this.model_to - this.widgets.size - pos + 1;
-		cur = pos - 1;
-		this.model_to --;
-
-		int removed_height = 0;
-		for (int i = count - 1; i >= 0; i --) {
-			int index = pos + i;
-			var w = this.widgets.get (index);
-			removed_height += get_widget_height (w);
-			this.remove_child_internal (w);
-		}
-
-		 //Move the tail up
-		this.position_children ();
-	}
-
-	public void insert_visible_widgets (int pos, int count)
-	{
-		 //We need to kill all of the widgets below the inserted ones,
-		 //since their index gets invalidated by the insertion.
-
-		int cur = this.model_to - this.widgets.size - pos + 1;
-		cur = pos - 1;
-
-		this.model_to = (int)max (model_to - 1, -1);
-		assert (this.model_to >= -1);
-
-		//delete all after the insertion point
-		for (int i = pos; i < this.widgets.size; i ++) {
-			this.remove_child_internal (this.widgets.get (pos));
-			i --;
-		}
-
-		// We simply rely on the later call to ensure_visible_widgets
-		// for adding the new widgets.
-
-		this.position_children ();
-	}
-
-
-
 	private inline int model_range ()
 	{
 		return this.model_to - this.model_from + 1;
@@ -270,55 +225,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			return;
 		}
 
-		uint impact = position + max (added, removed);
-
-		message ("Impact: %u, model_from: %d", impact, model_from);
-		if (impact > model_from) {
-			// XXX We could optimize this by actually inserting new widgets
-			// When they can be inserted instead of always removing/re-adding
-			// the entire tail.
-			int widgets_to_remove = (int)position + (int)removed - model_from;
-			message ("_____to_remove: %d", widgets_to_remove);
-			if (widgets_to_remove > this.widgets.size)
-				widgets_to_remove = this.widgets.size;
-
-			int widgets_to_add	= (int)position + (int)added - model_from;
-			int widget_pos = (int)position - model_from;
-
-			message ("widget_pos: %d", widget_pos);
-			if (widget_pos < 0) widget_pos = 0;
-
-			if (widgets_to_remove > 0) {
-				message ("Removing %d from %d widgets",
-						 widgets_to_remove, widgets.size);
-				widgets_to_remove = this.widgets.size - widget_pos;
-				message ("real widgets_to_remove: %d", widgets_to_remove);
-				this.remove_visible_widgets (widget_pos, widgets_to_remove);
-			}
 
 
-			// XXX This condition (and insert_visible_widgets...) is broken if the listbox
-			//     is not in a GtkScrolledWindow.
-			message ("Inserting %d visible widgets at %d, curr widgets: %d", widgets_to_add, widget_pos, this.widgets.size);
+		/*
+		 * XXX
+		 * We are just removing all visible widgets and add them again.
+		 * Quite some potential for optimization here.
+		 */
 
-			message ("model_to before: %d", this.model_to);
-			if (widgets_to_add > 0)// && widgets_to_add < this.widgets.size)// XXX Second condition needed?
-				this.insert_visible_widgets (widget_pos, widgets_to_add);
-
-
-
-			message ("ITEMS NOW: %u", this.model.get_n_items ());
-			message ("WIDGETS NOW: %d", widgets.size);
-			message ("MODEL_TO NOW: %d", model_to);
-
-			 //XXX Just decrease the bin_window size by the widget's height when removing it.
-			this.update_bin_window ();
-			this.ensure_visible_widgets ();
-		}
-
-
-
-
+		this.remove_all_widgets ();
+		this.model_to = this.model_from - 1;
+		message ("model_from: %d", this.model_from);
+		message ("  model_to: %d", this.model_to);
+		this.update_bin_window ();
+		this.ensure_visible_widgets ();
 
 		if (this._vadjustment == null)
 			this.queue_resize ();
@@ -357,11 +277,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		this.cur_widgets = this.widgets.size;
 	}
 
-	//private void remove_all_widgets ()
-	//{
-		//for (int i = this.widgets.size - 1; i >= 0; i --)
-			//this.remove_child_internal (this.widgets.get (i));
-	//}
+	private void remove_all_widgets ()
+	{
+		for (int i = this.widgets.size - 1; i >= 0; i --)
+			this.remove_child_internal (this.widgets.get (i));
+	}
 
 	/* GtkContainer API {{{ */
 	public override void add (Gtk.Widget child) { assert (false); }
@@ -575,6 +495,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (top_widgets >= 0);
 		assert (bottom_widgets >= 0);
 
+		message ("%d + %d + %d == %d", top_widgets, bottom_widgets, this.widgets.size,
+		         (int)this.model.get_n_items ());
 		assert (top_widgets + bottom_widgets + this.widgets.size == (int)this.model.get_n_items ());
 
 		int exact_height = 0;
@@ -687,11 +609,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	 */
 	private inline int bin_y ()
 	{
-		int v = 0;
+		int value = 0;
 		if (this._vadjustment != null)
-			v = - (int)this._vadjustment.value;
-		int p = v + this.bin_y_diff;
-		return p;
+			value = - (int)this._vadjustment.value;
+		return value + this.bin_y_diff;
 	}
 
 	private bool remove_top_widgets (ref int bin_height)
@@ -721,7 +642,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private void fix_bin_y_diff ()
 	{
 
-		int bin_height = this.bin_window.get_height ();
+		//int bin_height = this.bin_window.get_height ();
 
 
 		//if (bin_y_diff < 0) {
@@ -746,14 +667,23 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		while (bin_y () > 0 && model_from > 0) {
 			this.model_from --;
 			var new_widget = get_widget (this.model_from);
+			message ("INSERT AT TOP FOR MODEL_FROM %d", this.model_from);
 			assert (new_widget != null);
 			this.insert_child_internal (new_widget, 0);
 			int min = get_widget_height (new_widget);
 			this.bin_y_diff -= min;
 			bin_height += min;
-			fix_bin_y_diff ();
 			added = true;
 		}
+
+		if (bin_y () > 0) {
+			// We just didn't have enough widgets...
+			this.bin_y_diff = 0;
+			block = true;
+			this._vadjustment.value = 0;
+			block = false;
+		}
+
 		return added;
 	}
 
@@ -844,79 +774,95 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		int bin_height;
 		Gtk.Allocation widget_alloc;
 		this.get_allocation (out widget_alloc);
-		this.bin_window.get_geometry (null, null, null, out bin_height);
+		bin_height = this.bin_window.get_height ();
 		if (bin_height == 1) bin_height = 0;
+
+		message ("bin_height first: %d", bin_height);
 
 		// OUT OF SIGHT {{{
 		// If the bin_window, with the new vadjustment.value and the old
 		// bin_y_diff is not in the viewport anymore at all...
-		//if (bin_y () + bin_height < 0 ||
-			//bin_y () > widget_alloc.height) {
-			//int estimated_widget_height = estimated_widget_height ();
-			//assert (estimated_widget_height >= 0);
+		if (bin_y () + bin_height < 0 ||
+			bin_y () > widget_alloc.height) {
+			int estimated_widget_height = estimated_widget_height ();
+			assert (estimated_widget_height >= 0);
 
-			//message ("OUT OF SIGHT");
+			message ("OUT OF SIGHT");
 			/*
 				 XXX We can overestimate the complete real size of the list,
 						 so top_widget_index might be too big.
 						 In that case, just set model_to = items.size - 1
 						 and build the visible widgets backwards.
 			 */
-			//int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
-			//assert (top_widget_index >= 0);
+			int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
+			assert (top_widget_index >= 0);
 
-			//if (top_widget_index > (int)this.model.get_n_items ()) {
-				//message ("OVERESTIMATE");
-				//remove_all_widgets ();
-				//this.model_to = (int)this.model.get_n_items () - 1;
-				//this.model_from = this.model_to + 1;
+			if (top_widget_index > (int)this.model.get_n_items ()) {
+				message ("OVERESTIMATE");
+				remove_all_widgets ();
+				this.model_to = (int)this.model.get_n_items () - 1;
+				this.model_from = this.model_to + 1;
 
-				// Empty bin window at the bottom of the list/widget
-				//bin_height = 0;
-				//this.bin_y_diff = (int)this._vadjustment.value + this.get_allocated_height ();
-				//while (model_from > 0 &&
-					   //bin_height < this.get_allocated_height ()) {
-					//this.model_from --;
+				 //Empty bin window at the bottom of the list/widget
+				bin_height = 0;
+				this.bin_y_diff = (int)this._vadjustment.value + this.get_allocated_height ();
+				while (model_from > 0 &&
+					   bin_height < this.get_allocated_height ()) {
+					this.model_from --;
+
+
+					/*
+							XXX
+							Current task:
+							- fix out-of-sight part
+							- Fix assertion failure when scroling to the top
+							XXX
+
+					   */
+
+
 					//var widget = get_next_widget (model_from - 1);
+					this.model_from --;
+					var widget = get_widget (model_from);
 					//this.model_from --;
 					//var widget = get_widget (this._model_from);
-					//int widget_height = this.get_widget_height (widget);
+					int widget_height = this.get_widget_height (widget);
 
-					//bin_height += widget_height;
-					//this.bin_y_diff -= widget_height;
-					//this.insert_child_internal (widget, 0);
-				//}
+					bin_height += widget_height;
+					this.bin_y_diff -= widget_height;
+					this.insert_child_internal (widget, 0);
+				}
 
-				//if (!(model_from == 0 && model_to == -1)) {
-					//assert (model_from <= model_to);
-				//}
-				//assert (model_to == (int)this.model.get_n_items () - 1);
+				if (!(model_from == 0 && model_to == -1)) {
+					assert (model_from <= model_to);
+				}
+				assert (model_to == (int)this.model.get_n_items () - 1);
 
-				// if bin_y () is still > 0, we just don't have enough widgets to fill the entire
-				// viewport, so just move the bin_window up again
-				//if (bin_y () > 0)
-					//this.bin_y_diff = 0;
+				 //if bin_y () is still > 0, we just don't have enough widgets to fill the entire
+				 //viewport, so just move the bin_window up again
+				if (bin_y () > 0)
+					this.bin_y_diff = 0;
 
-				//this.update_bin_window ();
-				//this.configure_adjustment ();
+				this.update_bin_window ();
+				this.configure_adjustment ();
 
-				//return;
-			//}
+				return;
+			}
 
-			//this.bin_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
-			//bin_height = 0; // Because we removed all  widgets.
+			this.bin_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
+			bin_height = 0; // Because we removed all  widgets.
 
-			//remove_all_widgets ();
+			remove_all_widgets ();
 
-			//this.model_from = top_widget_index;// - 1;
-			//this.model_to	= model_from - 1;
+			this.model_from = top_widget_index;// - 1;
+			this.model_to	= model_from - 1;
 
-			//assert (model_from >= 0);
-			//assert (model_from < model.get_n_items ());
-			//assert (model_to < (int)model.get_n_items ());
+			assert (model_from >= 0);
+			assert (model_from < model.get_n_items ());
+			assert (model_to < (int)model.get_n_items ());
 
-			// Let the rest of the code handle refilling our bin_window
-		//}
+			 //Let the rest of the code handle refilling our bin_window
+		}
 		// }}}
 
 		bool top_removed = remove_top_widgets (ref bin_height);
@@ -932,13 +878,62 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (bottom_removed) assert (!bottom_added);
 
 
+
+		{
+			int bin_y = bin_y ();
+			assert (bin_y <= 0);
+
+			int top_part;
+			int widget_part;
+			int bottom_part;
+
+			this.estimated_list_height (out top_part,
+			                            out bottom_part,
+			                            out widget_part);
+
+			this.bin_y_diff = top_part;
+
+			this.configure_adjustment ();
+
+			//message ("bin_y: %d", this.bin_y ());
+			block = true;
+			message ("Max: %f", this._vadjustment.upper - this._vadjustment.page_size);
+			this._vadjustment.value = this.bin_y_diff + (-bin_y);
+			message ("New value: %f (%f - %d)", this._vadjustment.value, this.bin_y_diff, bin_y);
+			block = false;
+
+			bool top = false;
+			bool bottom = false;
+			if (this.bin_y () > 0 && this.model_from == 0) {
+				top = true;
+			}
+
+			if (this.bin_y () + this.bin_window.get_height () < this.get_allocated_height () &&
+			    this.model_to == (int)this.model.get_n_items () - 1) {
+
+				bottom = true;
+			}
+
+			if (top)    assert (!bottom);
+			if (bottom) assert (!top);
+
+
+		}
+
+
+
+
+
+
 		// XXX Maybe optimize this out if nothing changed?
 		// XXX update_bin_window will do slow stuff and we just computed bin_height ourselves...
+		message ("bin_y: %d", bin_y ());
 		this.configure_adjustment ();
+		message ("bin_y: %d", bin_y ());
 		this.update_bin_window ();
 		int h;
 		// XXX Remove this assertion, pass the new bin_size to update_bin_window
-		this.bin_window.get_geometry (null, null, null, out h);
+		h = this.bin_window.get_height ();
 		if (h == 1) h = 0;
 		if (h != bin_height)
 		  message ("h: %d, bin_height: %d", h, bin_height);
