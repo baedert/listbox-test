@@ -468,18 +468,24 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		int average_widget_height = 0;
 		int used_widgets = 0;
 
-		if (this.widgets.size > 0) {
-			foreach (var w in this.widgets) {
-				if (w.visible) {
-					average_widget_height += get_widget_height (w);
-					used_widgets ++;
-				}
+		foreach (var w in this.widgets) {
+			if (w.visible) {
+				average_widget_height += get_widget_height (w);
+				used_widgets ++;
 			}
-			average_widget_height /= used_widgets;
+		}
 
-			this.last_valid_widget_height = average_widget_height;
-		} else
-			average_widget_height = this.last_valid_widget_height;
+		if (used_widgets == 0) {
+			message ("widgets: %d", this.widgets.size);
+			message ("Used: %d", used_widgets);
+		}
+
+		if (used_widgets > 0)
+			average_widget_height /= used_widgets;
+		else
+		  average_widget_height = this.last_valid_widget_height;
+
+		this.last_valid_widget_height = average_widget_height;
 
 		return average_widget_height;
 	}
@@ -648,7 +654,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	{
 		bool added = false;
 		// Insert widgets at top
-		while (bin_y () > 0 && model_from > 0) {
+		while (bin_y () >= 0 && model_from > 0) {
 			this.model_from --;
 			var new_widget = get_widget (this.model_from);
 			message ("INSERT AT TOP FOR MODEL_FROM %d", this.model_from);
@@ -696,7 +702,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
                                         bool    start = false)
 	{
 		bool added = false;
-		while (bin_y () + bin_height < this.get_allocated_height () &&
+		while (bin_y () + bin_height <= this.get_allocated_height () &&
 		       model_to < (int)model.get_n_items () - 1) {
 			this.model_to ++;
 			var new_widget = get_widget (this.model_to);
@@ -766,17 +772,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		// If the bin_window, with the new vadjustment.value and the old
 		// bin_y_diff is not in the viewport anymore at all...
 		if (bin_y () + bin_height < 0 ||
-			bin_y () > widget_alloc.height) {
+			bin_y () >= widget_alloc.height) {
 			int estimated_widget_height = estimated_widget_height ();
 			assert (estimated_widget_height >= 0);
 
 			message ("OUT OF SIGHT");
 			/*
 				 XXX We can overestimate the complete real size of the list,
-						 so top_widget_index might be too big.
-						 In that case, just set model_to = items.size - 1
-						 and build the visible widgets backwards.
+				     so top_widget_index might be too big.
+				     In that case, just set model_to = items.size - 1
+				     and build the visible widgets backwards.
 			 */
+
+			/*
+				XXX
+				If lots of widgets e.g. at the end are invisible, we'd have to go back
+				int the list and find enough visible ones...
+			 */
+
+
 			int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
 			assert (top_widget_index >= 0);
 
@@ -792,17 +806,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				while (model_from > 0 &&
 					   bin_height < this.get_allocated_height ()) {
 					this.model_from --;
-
-
-					/*
-							XXX
-							Current task:
-							- fix out-of-sight part
-							- Fix assertion failure when scroling to the top
-							XXX
-
-					   */
-
 
 					//var widget = get_next_widget (model_from - 1);
 					this.model_from --;
