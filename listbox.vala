@@ -315,14 +315,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		Gtk.Allocation alloc;
 		this.get_allocation (out alloc);
 
-		//ct.set_source_rgba (1, 0, 0, 1);
-		//ct.rectangle (0, 0, alloc.width, alloc.height);
-		//ct.fill ();
-
-
 		sc.render_background (ct, 0, 0, alloc.width, alloc.height);
 		sc.render_frame (ct, 0, 0, alloc.width, alloc.height);
-
 
 		{
 			int x, y, w, h;
@@ -506,8 +500,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (top_widgets >= 0);
 		assert (bottom_widgets >= 0);
 
-		//message ("%d + %d + %d == %d", top_widgets, bottom_widgets, this.widgets.size,
-				 //(int)this.model.get_n_items ());
 		assert (top_widgets + bottom_widgets + this.widgets.size == (int)this.model.get_n_items ());
 
 		int exact_height = 0;
@@ -556,7 +548,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (h == 0)
 			h = 1;
 
-		//message ("new bin_window height: %d", h);
 		if (h != this.bin_window.get_height () ||
 		    allocation.width != this.bin_window.get_width ()) {
 
@@ -606,10 +597,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			block = false;
 		}
 
-
-		//message ("CONFIGURE: upper: %f (%d, %d), page_size: %f",
-				 //this._vadjustment.upper, list_height, widget_height,
-				 //this._vadjustment.page_size);
 	}
 
 
@@ -753,20 +740,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (block)
 		  return;
 
-		// !vadjustment case {{{
-		//if (this._vadjustment == null) {
-			//if (this.widgets.size < (int)this.model.get_n_items ()) {
-				//while (model_to < (int)this.model.get_n_items () - 1) {
-					//error ("FIXME: Wrong insertion position");
-				//}
-			//}
 
-			//assert (model_from == 0);
-			//assert (model_to == this.model.get_n_items () - 1);
-			//return;
-		//}
 
-		//}}}
 
 
 		int bin_height;
