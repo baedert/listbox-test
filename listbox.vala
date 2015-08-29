@@ -779,7 +779,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		// If the bin_window, with the new vadjustment.value and the old
 		// bin_y_diff is not in the viewport anymore at all...
 		if (bin_y () + bin_height < 0 ||
-			bin_y () >= widget_alloc.height) {
+		    bin_y () >= widget_alloc.height) {
 			int estimated_widget_height = estimated_widget_height ();
 			assert (estimated_widget_height >= 0);
 
@@ -848,10 +848,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			remove_all_widgets ();
 
 			this.model_from = top_widget_index;// - 1;
-			this.model_to	= model_from - 1;
+			this.model_to    = model_from - 1;
 
+			message ("New range: %d - %d", model_from, model_to);
+
+			/* Extreme case is 0/-1 */
 			assert (model_from >= 0);
-			assert (model_from < model.get_n_items ());
+			assert (model_from <= model.get_n_items ());
 			assert (model_to < (int)model.get_n_items ());
 
 			 //Let the rest of the code handle refilling our bin_window
