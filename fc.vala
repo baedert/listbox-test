@@ -182,8 +182,7 @@ void main (string[] args)
 	var model = new FontModel ();
 	var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
 	var scroller = new Gtk.ScrolledWindow (null, null);
-	var filter_entry = new Gtk.Entry ();
-	filter_entry.placeholder_text = "Filter";
+	var filter_entry = new Gtk.SearchEntry ();
 	list.set_model (model);
 
 
@@ -241,7 +240,7 @@ void main (string[] args)
 		                                                                         list.estimated_height);
 	});
 
-	filter_entry.buffer.notify["text"].connect (() => {
+	filter_entry.search_changed.connect (() => {
 		model.apply_filter (filter_entry.get_text ());
 	});
 
