@@ -1,13 +1,10 @@
 /*
 	 == TODO LIST ==
-	 - remove last row(s) -> checkbox doesn't work anymore
 	 - Optimize stuff
 	 - Make model_from and model_to uints.
-	 - Remove all, add 2 items -> will display the same item twice.
 	 - Very thin window -> widgets invisible
 	 - Fix all XXX
 	 - Revealer in Widget (Should work already?)
-	 - test invisible widgets (this will probably fail)
 	 - Port to C
  */
 
@@ -24,6 +21,12 @@ inline uint max (uint a, uint b)
 {
 	return (a > b) ? a : b;
 }
+
+inline int min (int a, int b)
+{
+	return a < b ? a : b;
+}
+
 
 
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
@@ -459,6 +462,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		if (w.visible)
 			assert (min >= 1);
+		else
+			assert (min == 0);
 
 		return min;
 	}
@@ -468,6 +473,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		int average_widget_height = 0;
 		int used_widgets = 0;
 
+		// XXX Do we really not want to care about invisible widgets here?
 		foreach (var w in this.widgets) {
 			if (w.visible) {
 				average_widget_height += get_widget_height (w);
@@ -475,15 +481,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			}
 		}
 
-		if (used_widgets == 0) {
-			message ("widgets: %d", this.widgets.size);
-			message ("Used: %d", used_widgets);
-		}
-
 		if (used_widgets > 0)
 			average_widget_height /= used_widgets;
 		else
-		  average_widget_height = this.last_valid_widget_height;
+			average_widget_height = this.last_valid_widget_height;
 
 		this.last_valid_widget_height = average_widget_height;
 
@@ -527,13 +528,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		int h = top_part + bottom_part + widgets_part;
 
-		int min_list_height = (int)this._vadjustment.value
-		                      + bin_y ()
-							  + widgets_part
-							  //+ (int)this._vadjustment.page_size
-							  ;
-
-		//message ("h: %d (%d, %d)", (int)max ((uint)h, (uint)min_list_height), h, min_list_height);
+		//int min_list_height = (int)this._vadjustment.value
+							  //+ bin_y ()
+							  //+ widgets_part;
 
 		//h = (int) max (h, min_list_height);
 
@@ -561,7 +558,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		//message ("new bin_window height: %d", h);
 		if (h != this.bin_window.get_height () ||
-			allocation.width != this.bin_window.get_width ()) {
+		    allocation.width != this.bin_window.get_width ()) {
+
 			this.bin_window.move_resize (0,
 			                             bin_y (),
 			                             allocation.width,
@@ -614,11 +612,16 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				 //this._vadjustment.page_size);
 	}
 
+
+
 	/**
 	 * @return The bin_window's y coordinate in widget coordinates.
 	 */
 	private inline int bin_y ()
 	{
+
+		// XXX Depends on bin_y_diff and the value!
+
 		int value = 0;
 		if (this._vadjustment != null)
 			value = - (int)this._vadjustment.value;
@@ -635,14 +638,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			int w_height = get_widget_height (w);
 			if (bin_y () + widget_y (i) +  w_height < 0) {
 				// Remove widget, resize and move bin_window
+				message ("Remove widget %d", i);
 				message ("REMOVE AT TOP");
+				message ("Height: %d", w_height);
+				if (w.visible) message ("Visible!");
 				this.bin_y_diff += w_height;
 				bin_height -= w_height;
 				this.remove_child_internal (w);
 				this.model_from ++;
 				removed = true;
 			}
-			else break;
+			else {
+				message ("Break at %d", i);
+				break;
+			}
 		}
 
 		return removed;
@@ -766,8 +775,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		bin_height = this.bin_window.get_height ();
 		if (bin_height == 1) bin_height = 0;
 
-		message ("bin_height first: %d", bin_height);
-
 		// OUT OF SIGHT {{{
 		// If the bin_window, with the new vadjustment.value and the old
 		// bin_y_diff is not in the viewport anymore at all...
@@ -866,6 +873,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 		{
+			message ("------------");
 			int bin_y = bin_y ();
 			assert (bin_y <= 0);
 
@@ -873,19 +881,25 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			int widget_part;
 			int bottom_part;
 
+			message ("bin_y before: %d", this.bin_y ());
+			message ("value before: %f", this._vadjustment.value);
 			this.estimated_list_height (out top_part,
 			                            out bottom_part,
 			                            out widget_part);
 
-			this.bin_y_diff = top_part;
+			this.bin_y_diff = min (top_part, (int)this._vadjustment.value);
+
+			message ("bin_y now: %d", this.bin_y ());
 
 			this.configure_adjustment ();
+			message ("Value now: %f", this._vadjustment.value);
 
 			//message ("bin_y: %d", this.bin_y ());
 			block = true;
 			message ("Max: %f", this._vadjustment.upper - this._vadjustment.page_size);
 			this._vadjustment.value = this.bin_y_diff + (-bin_y);
 			message ("New value: %f (%f - %d)", this._vadjustment.value, this.bin_y_diff, bin_y);
+			message ("bin_y now: %d", this.bin_y ());
 			block = false;
 
 			bool top = false;
@@ -903,6 +917,15 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			if (top)    assert (!bottom);
 			if (bottom) assert (!top);
 
+
+			if (this.bin_y () > 0) {
+				message ("bin_y: %d, setting bin_y_diff to %d",
+				         this.bin_y (), (int)this._vadjustment.value);
+				this.bin_y_diff = (int)this._vadjustment.value;
+				assert (false);
+			}
+
+			message ("---------------");
 
 		}
 

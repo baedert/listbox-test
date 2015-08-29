@@ -90,7 +90,7 @@ class FontModel : GLib.Object, GLib.ListModel {
 
 	}
 
-	private const int LIMIT = 200;
+	private const int LIMIT = 40;
 	public void load_fonts ()
 	{
 		var b = Bench.start ("Loading fonts");
@@ -158,6 +158,10 @@ class Row : Gtk.ListBoxRow {
 	}
 
 	public void assign (FontData data) {
+		assert (data != null);
+		assert (data.face != null);
+		assert (data.desc != null);
+
 		var attrs = new Pango.AttrList ();
 		attrs.insert (new Pango.AttrFontDesc (data.desc));
 		attrs.insert (new Pango.AttrSize (14 * Pango.SCALE));
@@ -201,6 +205,8 @@ void main (string[] args)
 		Row? row = (Row)old_widget;
 		if (row == null)
 		  row = new Row ();
+		else
+		  message ("Recycling...");
 
 		FontData data = (FontData) item;
 
@@ -208,10 +214,17 @@ void main (string[] args)
 		  data.desc = data.face.describe ();
 
 		row.assign (data);
-		if (data.index < 10)
+
+		if (data.index % 2 == 0)
 		  row.show_all ();
 		else
 		  row.hide ();
+
+
+		//if (data.index < 10)
+		  //row.show_all ();
+		//else
+		  //row.hide ();
 
 		return row;
 	};
