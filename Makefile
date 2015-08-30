@@ -11,7 +11,7 @@
 
 
 all: listbox.vala fc.vala
-	valac fc.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w --save-temps
+	valac fc.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w -D DEBUG
 
 
 resources.c: resources.xml demo.ui row.ui tweet-row.ui
