@@ -52,16 +52,6 @@ class Row : Gtk.ListBoxRow {
 		box.add (l);
 
 
-
-		/* XXX
-
-			- Revealing lots of children does not add rows at the end.
-
-
-
-		   */
-
-
 		revealer.reveal_child = true;
 
 		btn.clicked.connect (() => {

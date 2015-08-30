@@ -369,6 +369,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.update_bin_window ();
 		}
 
+		if (!bin_window_full ())
+			this.ensure_visible_widgets ();
+
 		// Will call ensure_widgets if needed...
 		configure_adjustment ();
 	}
