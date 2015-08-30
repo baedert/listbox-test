@@ -735,6 +735,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		bin_height = this.bin_window.get_height ();
 		if (bin_height == 1) bin_height = 0;
 
+
+		/* XXX The out-of-sight case is currently broken  */
+
 		// OUT OF SIGHT {{{
 		// If the bin_window, with the new vadjustment.value and the old
 		// bin_y_diff is not in the viewport anymore at all...
@@ -763,7 +766,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			if (top_widget_index > (int)this.model.get_n_items ()) {
 				message ("OVERESTIMATE");
-				remove_all_widgets ();
+				this.remove_all_widgets ();
 				this.model_to = (int)this.model.get_n_items () - 1;
 				this.model_from = this.model_to + 1;
 
@@ -772,8 +775,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				this.bin_y_diff = (int)this._vadjustment.value + this.get_allocated_height ();
 				while (model_from > 0 &&
 					   bin_height < this.get_allocated_height ()) {
-					this.model_from --;
-
 					this.model_from --;
 					var widget = get_widget (model_from);
 					int w_height = this.get_widget_height (widget);
