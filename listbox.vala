@@ -204,9 +204,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 
 		this.configure_adjustment ();
-
-		// XXX HERE WE CALL IT AGAIN FUCK
-		this.ensure_visible_widgets ();
+		/*
+			We do *not* call ensure_visible_widgets here, and instead do it in size-allocate.
+		 */
 	}
 
 	private void items_changed_cb (uint position, uint removed, uint added)
@@ -369,7 +369,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.update_bin_window ();
 		}
 
-    /* XXX This breaks window resizing */
 		if (!bin_window_full ())
 			this.ensure_visible_widgets ();
 
