@@ -1,21 +1,13 @@
+// vim: set noexpandtab tabstop=4 shiftwidth=4 softtabstop=4:
+
 /*
 	 == TODO LIST ==
 	 - Optimize stuff
 	 - Make model_from and model_to uints.
-	 - Very thin window -> widgets invisible
 	 - Fix all XXX
-	 - Revealer in Widget (Should work already?)
 	 - Port to C
  */
 
-
-
-/*
-
-
-
-
- */
 
 inline uint max (uint a, uint b)
 {
@@ -179,11 +171,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 
 
-	private inline int model_range ()
-	{
-		return this.model_to - this.model_from + 1;
-	}
-
 	private inline bool bin_window_full () {
 		int bin_height = this.bin_window.get_height ();
 		int widget_height = this.get_allocated_height ();
@@ -199,13 +186,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		double max_value = this._vadjustment.upper - this._vadjustment.page_size;
 
 		if (this._vadjustment.value > max_value) {
-			// XXX Will call ensure_visible_widgets
 			this._vadjustment.value = max_value;
 		}
 
 		this.configure_adjustment ();
 		/*
-			We do *not* call ensure_visible_widgets here, and instead do it in size-allocate.
+		 * We do *not* call ensure_visible_widgets here
+		 * and instead do it in size-allocate.
 		 */
 	}
 
@@ -225,11 +212,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			return;
 		}
+
 		/*
 		 * We are just removing all visible widgets and add them again.
 		 * Quite some potential for optimization here.
 		 */
-
 		this.remove_all_widgets ();
 		this.model_to = this.model_from - 1;
 		this.update_bin_window ();
@@ -280,7 +267,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 	public override void forall_internal (bool         include_internals,
 	                                      Gtk.Callback callback) {
-		foreach (var child in widgets) {
+		foreach (var child in this.widgets) {
 			callback (child);
 		}
 	}
@@ -304,16 +291,18 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		Gtk.Allocation alloc;
 		this.get_allocation (out alloc);
 
+		/* XXX In case of e.g. a background gradient, we technically have
+		 *     to use the estimated height... */
 		sc.render_background (ct, 0, 0, alloc.width, alloc.height);
-		sc.render_frame (ct, 0, 0, alloc.width, alloc.height);
+		sc.render_frame      (ct, 0, 0, alloc.width, alloc.height);
 
-		{
-			int x, y, w, h;
-			this.bin_window.get_geometry (out x, out y, out w, out h);
-			ct.set_source_rgba (0, 0, 1, 1);
-			ct.rectangle (x, y, w, h);
-			ct.stroke ();
-		}
+		//{
+			//int x, y, w, h;
+			//this.bin_window.get_geometry (out x, out y, out w, out h);
+			//ct.set_source_rgba (0, 0, 1, 1);
+			//ct.rectangle (x, y, w, h);
+			//ct.stroke ();
+		//}
 
 
 
@@ -579,11 +568,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 		/* We need to ensure this ourselves */
 		if (this._vadjustment.value > this._vadjustment.upper - this._vadjustment.page_size) {
-			//double new_value = this._vadjustment.upper - this._vadjustment.page_size;
-			//message ("Restraining value from %d to %d, upper: %d,page_size: %d",
-					 //(int)this._vadjustment.value,
-					 //(int)new_value, (int)this._vadjustment.upper,
-					 //(int)this._vadjustment.page_size);
 			block = true;
 			this._vadjustment.value = this._vadjustment.upper - this._vadjustment.page_size;
 			block = false;
@@ -913,7 +897,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		h = this.bin_window.get_height ();
 		if (h == 1) h = 0;
 		if (h != bin_height)
-		  message ("h: %d, bin_height: %d", h, bin_height);
+			message ("h: %d, bin_height: %d", h, bin_height);
 		assert (h == bin_height);
 
 		// XXX Is this really necessary EVERY TIME?
@@ -921,11 +905,11 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 		if (bin_y () > 0)
-		  message ("bin_y: %d", bin_y ());
+			message ("bin_y: %d", bin_y ());
 		assert (bin_y () <= 0);
 
 		// is the lower bound of bin_window in our viewport? It shouldn't.
-		if (model_range () != this.model.get_n_items ()) {
+		if (model_to - model_from + 1 != this.model.get_n_items ()) {
 			assert (bin_y () + bin_height >= -(int)vadjustment.value + this.get_allocated_height ());
 		}
 

@@ -116,8 +116,8 @@ class FontModel : GLib.Object, GLib.ListModel {
 				this.fonts.add (data);
 				n ++;
 			}
-			if (n > LIMIT)
-			  break;
+			//if (n > LIMIT)
+				//break;
 		}
 
 		b.stop ();
