@@ -369,6 +369,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.update_bin_window ();
 		}
 
+    /* XXX This breaks window resizing */
 		if (!bin_window_full ())
 			this.ensure_visible_widgets ();
 
