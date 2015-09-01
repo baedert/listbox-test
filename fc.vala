@@ -1,3 +1,5 @@
+// vim: set noexpandtab tabstop=4 shiftwidth=4 softtabstop=4:
+
 
 public class Bench {
 	public string name;
@@ -214,16 +216,7 @@ void main (string[] args)
 
 		row.assign (data);
 
-		if (data.index % 2 == 0)
-		  row.show_all ();
-		else
-		  row.hide ();
-
-
-		//if (data.index < 10)
-		  //row.show_all ();
-		//else
-		  //row.hide ();
+		row.show_all ();
 
 		return row;
 	};
