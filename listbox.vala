@@ -821,10 +821,9 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (bottom_added)   assert (!bottom_removed);
 		if (bottom_removed) assert (!bottom_added);
 
-		bool widgets_changed = top_removed    ||
-		                       top_added      ||
-		                       bottom_removed ||
-		                       bottom_added;
+		/* In these cases, we need to reposition our rows */
+		bool widgets_pos_changed = top_removed    ||
+		                           top_added;
 
 
 
@@ -908,8 +907,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			message ("h: %d, bin_height: %d", h, bin_height);
 		assert (h == bin_height);
 
-		// XXX Is this really necessary EVERY TIME?
-		if (widgets_changed)
+		if (widgets_pos_changed)
 			this.position_children ();
 
 
