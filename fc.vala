@@ -227,7 +227,7 @@ void main (string[] args)
 	});
 
 	list.size_allocate.connect (() => {
-		window.title = "Font Chooser (%d items, %d -- %d, estimate: %d)".printf ((int)model.get_n_items (),
+		window.title = "Font Chooser (%d items, %u -- %u, estimate: %d)".printf ((int)model.get_n_items (),
 		                                                                         list.model_from,
 		                                                                         list.model_to,
 		                                                                         list.estimated_height);
