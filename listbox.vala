@@ -146,17 +146,21 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		var item = model.get_object (index);
 		assert (item != null);
 
-		return fill_func (item, get_old_widget ());
-	}
+		Gtk.Widget? old_widget = null;
+		if (this.old_widgets.size > 0) {
+			old_widget = this.old_widgets.get (this.old_widgets.size - 1);
+			this.old_widgets.remove (old_widget);
+		}
 
-	private Gtk.Widget? get_old_widget ()
-	{
-		if (this.old_widgets.size == 0)
-			return null;
 
-		var w = this.old_widgets.get (this.old_widgets.size - 1);
-		this.old_widgets.remove (w);
-		return w;
+		Gtk.Widget new_widget = fill_func (item, old_widget);
+		/*
+		 * We just enforce visibility here. If a row should be invisible, it just
+		 * shouldn't be part of the model at all (i.e. filtered out).
+		 */
+		new_widget.show ();
+
+		return new_widget;
 	}
 
 	public void set_model (GLib.ListModel model)
