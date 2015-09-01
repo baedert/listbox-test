@@ -3,4 +3,5 @@ demo
 fm
 fc
 revealer
+no-scroll
 *.c
