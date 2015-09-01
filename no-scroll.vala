@@ -202,6 +202,7 @@ void main (string[] args)
 	});
 
 
+	list.vexpand = true;
 	box.add (list);
 
 	var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
