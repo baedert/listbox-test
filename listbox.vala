@@ -711,7 +711,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 	private inline int widget_y (int index)
 	{
-		// XXX Sould we really iterate all the time like that?
 		assert (index < this.widgets.size);
 		assert (index >= 0);
 
@@ -757,13 +756,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 				     In that case, just set model_to = items.size - 1
 				     and build the visible widgets backwards.
 			 */
-
-			/*
-				XXX
-				If lots of widgets e.g. at the end are invisible, we'd have to go back
-				int the list and find enough visible ones...
-			 */
-
 
 			int top_widget_index = (int)this._vadjustment.value / estimated_widget_height;
 			assert (top_widget_index >= 0);
@@ -838,6 +830,10 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		/* In these cases, we need to reposition our rows */
 		bool widgets_pos_changed = top_removed    ||
 		                           top_added;
+		bool widgets_changed = top_removed    ||
+		                       top_added      ||
+		                       bottom_removed ||
+		                       bottom_added;
 
 
 
@@ -904,18 +900,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
-
-
-
-		// XXX Maybe optimize this out if nothing changed?
-		// XXX update_bin_window will do slow stuff and we just computed bin_height ourselves...
 		message ("bin_y: %d", bin_y ());
-		this.configure_adjustment ();
-		message ("bin_y: %d", bin_y ());
-		if (this.bin_window.get_height () != bin_height) {
-			message ("New bin_height: %d", bin_height);
-			this.update_bin_window (bin_height);
+		if (widgets_changed) {
+			this.configure_adjustment ();
 		}
+
+		/* We always need to change this, since the value always changed. */
+		this.update_bin_window (bin_height);
 		//int h;
 		// XXX Remove this assertion, pass the new bin_size to update_bin_window
 		//h = this.bin_window.get_height ();
@@ -952,6 +943,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (model_to <= model.get_n_items ());
 		assert (model_from >= 0);
 		assert (model_from <= model.get_n_items ());
+
+		this.queue_draw ();
 	}
 
 }
