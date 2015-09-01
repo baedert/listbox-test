@@ -419,6 +419,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			w.set_parent_window (this.bin_window);
 	}
 
+	public override void get_preferred_width (out int minimal,
+	                                          out int natural)
+	{
+		/* Take the minimal width of all the children
+		 * See the no-scroll demo for an example where this
+		 * currently breaks. */
+
+		minimal = 0;
+		natural = 0;
+	}
+
 	public override void get_preferred_height (out int minimal,
 	                                           out int natural)
 	{
@@ -522,17 +533,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		return h;
 	}
 
-	private void update_bin_window ()
+	private void update_bin_window (int new_bin_height  = -1)
 	{
 		Gtk.Allocation allocation;
 		this.get_allocation (out allocation);
 
-		int h = 0;
-		int min;
-		foreach (var w in this.widgets) {
-			min = get_widget_height (w);
-			assert (min >= 0);
-			h += min;
+		int h = (new_bin_height == -1 ? 0 : new_bin_height);
+
+		if (new_bin_height == -1) {
+			int min;
+			foreach (var w in this.widgets) {
+				min = get_widget_height (w);
+				assert (min >= 0);
+				h += min;
+			}
 		}
 
 		if (h == 0)
@@ -898,14 +912,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		message ("bin_y: %d", bin_y ());
 		this.configure_adjustment ();
 		message ("bin_y: %d", bin_y ());
-		this.update_bin_window ();
-		int h;
+		if (this.bin_window.get_height () != bin_height) {
+			message ("New bin_height: %d", bin_height);
+			this.update_bin_window (bin_height);
+		}
+		//int h;
 		// XXX Remove this assertion, pass the new bin_size to update_bin_window
-		h = this.bin_window.get_height ();
-		if (h == 1) h = 0;
-		if (h != bin_height)
-			message ("h: %d, bin_height: %d", h, bin_height);
-		assert (h == bin_height);
+		//h = this.bin_window.get_height ();
+		//if (h == 1) h = 0;
+		//if (h != bin_height)
+			//message ("h: %d, bin_height: %d", h, bin_height);
+		//assert (h == bin_height);
 
 		if (widgets_pos_changed)
 			this.position_children ();
