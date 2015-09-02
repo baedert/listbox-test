@@ -491,6 +491,12 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	                                   out int bottom_part  = null,
 	                                   out int widgets_part = null)
 	{
+		if (GLib.unlikely (this.model == null)) {
+			top_part = 0;
+			bottom_part = 0;
+			widgets_part = 0;
+			return 0;
+		}
 		int widget_height = estimated_widget_height ();
 
 		assert (widget_height >= 0);
