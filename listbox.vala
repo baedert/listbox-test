@@ -54,12 +54,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	private Gtk.Adjustment? _vadjustment;
 	public Gtk.Adjustment? vadjustment {
 		set {
+			/* TODO: Disconnect from the old adjustment */
 			this._vadjustment = value;
 			if (this._vadjustment != null) {
 				this._vadjustment.value_changed.connect (ensure_visible_widgets);
 				this._vadjustment.notify["page-size"].connect (page_size_changed_cb);
+				configure_adjustment ();
 			}
-			configure_adjustment ();
 		}
 		get {
 			return this._vadjustment;
