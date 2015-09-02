@@ -372,7 +372,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.ensure_visible_widgets ();
 
 		// Will call ensure_widgets if needed...
-		configure_adjustment ();
+		if (this._vadjustment != null)
+			configure_adjustment ();
 	}
 
 	public override void realize ()
@@ -569,10 +570,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 	private void configure_adjustment ()
 	{
-		if (this._vadjustment == null)
-			return;
-
-
 		int widget_height = this.get_allocated_height ();
 		int list_height = estimated_list_height ();
 
@@ -901,7 +898,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 		message ("bin_y: %d", bin_y ());
-		if (widgets_changed) {
+		if (widgets_changed && this._vadjustment != null) {
 			this.configure_adjustment ();
 		}
 
