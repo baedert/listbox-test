@@ -250,13 +250,13 @@ void main (string[] args)
 
 	var up_btn = new Gtk.Button.with_label ("up");
 	up_btn.clicked.connect (() => {
-		scroller.get_vadjustment ().value --;
+		scroller.get_vadjustment ().value -= 0.5;
 	});
 	bbox.add (up_btn);
 
 	var down_btn = new Gtk.Button.with_label ("down");
 	down_btn.clicked.connect (() => {
-		scroller.get_vadjustment ().value ++;
+		scroller.get_vadjustment ().value += 0.5;
 	});
 	bbox.add (down_btn);
 
