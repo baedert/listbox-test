@@ -67,8 +67,8 @@ void main (string[] args)
 		assert (item != null);
 		row.assign (data);
 
-		//if (data.index < 3)
-		if (data.index > 0)
+		if (data.index < 3)
+		//if (data.index > 0)
 		  row.set_size_request (-1, 100);
 		else
 		  row.set_size_request (-1, -1);
@@ -102,6 +102,8 @@ void main (string[] args)
 
 
 	var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
+	bbox.margin_bottom = 6;
+	bbox.halign = Gtk.Align.CENTER;
 	scroller.vexpand = true;
 	scroller.add (list);
 	box.add (scroller);

@@ -304,7 +304,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	}
 	/* }}} */
 
-	/* GtkWidget API	{{{ */
+	/* GtkWidget API {{{ */
 
 	public override bool draw (Cairo.Context ct)
 	{
@@ -317,60 +317,14 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		sc.render_background (ct, 0, 0, alloc.width, alloc.height);
 		sc.render_frame      (ct, 0, 0, alloc.width, alloc.height);
 
-		//{
-			//int x, y, w, h;
-			//this.bin_window.get_geometry (out x, out y, out w, out h);
-			//ct.set_source_rgba (0, 0, 1, 1);
-			//ct.rectangle (x, y, w, h);
-			//ct.stroke ();
-		//}
-
-
-
 		if (Gtk.cairo_should_draw_window (ct, this.bin_window)) {
 			foreach (var child in widgets) {
 				this.propagate_draw (child, ct);
 			}
 		}
 
-		return false;
+		return Gdk.EVENT_PROPAGATE;
 	}
-
-	private void position_children ()
-	{
-		Gtk.Allocation allocation;
-		Gtk.Allocation child_allocation = {0};
-		int imp;
-
-		this.get_allocation (out allocation);
-
-		int y = 0;
-		if (this._vadjustment != null)
-			y = allocation.y;
-
-		child_allocation.x = 0;
-		if (allocation.width > 0)
-			child_allocation.width = allocation.width;
-		else
-			child_allocation.width = 1;
-
-		foreach (Gtk.Widget child in this.widgets) {
-			child.get_preferred_height_for_width (this.get_allocated_width (),
-			                                      out child_allocation.height,
-			                                      out imp);
-			child.get_preferred_width_for_height (child_allocation.height,
-			                                      out child_allocation.width,
-												  out imp);
-
-			child_allocation.width = maxi (child_allocation.width, this.get_allocated_width ());
-			assert (child_allocation.width  >= 0);
-			assert (child_allocation.height >= 0);
-			child_allocation.y = y;
-			child.size_allocate (child_allocation);
-			y += child_allocation.height;
-		}
-	}
-
 
 	public override void size_allocate (Gtk.Allocation allocation)
 	{
@@ -392,7 +346,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.ensure_visible_widgets ();
 		}
 
-		// Will call ensure_widgets if needed...
 		if (this._vadjustment != null)
 			configure_adjustment ();
 	}
@@ -470,6 +423,46 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		}
 	}
 	/* }}} */
+
+
+
+	private void position_children ()
+	{
+		Gtk.Allocation allocation;
+		Gtk.Allocation child_allocation = {0};
+		int imp;
+
+		this.get_allocation (out allocation);
+
+		int y = 0;
+		if (this._vadjustment != null)
+			y = allocation.y;
+
+		child_allocation.x = 0;
+		if (allocation.width > 0)
+			child_allocation.width = allocation.width;
+		else
+			child_allocation.width = 1;
+
+		foreach (Gtk.Widget child in this.widgets) {
+			child.get_preferred_height_for_width (this.get_allocated_width (),
+			                                      out child_allocation.height,
+			                                      out imp);
+			child.get_preferred_width_for_height (child_allocation.height,
+			                                      out child_allocation.width,
+			                                      out imp);
+
+			child_allocation.width = maxi (child_allocation.width, this.get_allocated_width ());
+			assert (child_allocation.width  >= 0);
+			assert (child_allocation.height >= 0);
+			child_allocation.y = y;
+			child.size_allocate (child_allocation);
+			y += child_allocation.height;
+		}
+	}
+
+
+
 
 	private inline int get_widget_height (Gtk.Widget w)
 	{
@@ -801,7 +794,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			assert (top_widget_index >= 0);
 
 			message ("estimated top widget index: %u (%u / %u)", top_widget_index,
-			          (uint)this._vadjustment.value, estimated_widget_height);
+			         (uint)this._vadjustment.value, estimated_widget_height);
 
 			if (top_widget_index > this.model.get_n_items ()) {
 				message ("OVERESTIMATE");
@@ -900,56 +893,43 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			int widget_part;
 			int bottom_part;
 
-			//message ("bin_y before: %d", this.bin_y ());
-			//message ("value before: %f", this._vadjustment.value);
 			this.estimated_list_height (out top_part,
 			                            out bottom_part,
 			                            out widget_part);
 
-			//this.bin_y_diff = min (top_part, (int)this._vadjustment.value);
 			this.bin_y_diff = mind (top_part, this._vadjustment.value);
 
-			//message ("bin_y_diff after: %f", this.bin_y_diff);
-			//message ("bin_y now: %d", this.bin_y ());
-
 			this.configure_adjustment ();
-			//message ("Value now: %f", this._vadjustment.value);
 
-			//message ("bin_y: %d", this.bin_y ());
+
+
 			block = true;
-			//message ("Max: %f", this._vadjustment.upper - this._vadjustment.page_size);
-			//message ("Setting the value to %f", this.bin_y_diff - bin_y);
-
-
-
 			this._vadjustment.value = this.bin_y_diff + (-bin_y);
 			if (this._vadjustment.value < this.bin_y_diff)
 				this._vadjustment.value = this.bin_y_diff;
 
-
-
-
-
-			//message ("New value: %f (%f - %d)", this._vadjustment.value, this.bin_y_diff, bin_y);
-			//message ("bin_y now: %d", this.bin_y ());
 			block = false;
 
-			bool top = false;
-			bool bottom = false;
-			if (this.bin_y () > 0 && this.model_from == 0) {
-				top = true;
-			}
 
-			if (this.bin_y () + this.bin_window.get_height () < this.get_allocated_height () &&
-			    this.model_to == this.model.get_n_items () - 1) {
+			//bool top = false;
+			//bool bottom = false;
+			//if (this.bin_y () > 0 && this.model_from == 0) {
+				//top = true;
+			//}
 
-				bottom = true;
-			}
+			//if (this.bin_y () + this.bin_window.get_height () < this.get_allocated_height () &&
+				//this.model_to == this.model.get_n_items () - 1) {
 
-			if (top)    assert (!bottom);
-			if (bottom) assert (!top);
+				//bottom = true;
+			//}
+
+			//if (top)    assert (!bottom);
+			//if (bottom) assert (!top);
 
 
+			/*
+			 *
+			 */
 			if (this.bin_y () > 0) {
 				message ("bin_y: %d, setting bin_y_diff to %d",
 				         this.bin_y (), (int)this._vadjustment.value);

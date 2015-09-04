@@ -21,12 +21,12 @@
 #all: listbox.vala revealer.vala
 	#valac revealer.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w -D DEBUG
 
-#all: listbox.vala overestimate.vala
-	#valac overestimate.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
+all: listbox.vala overestimate.vala
+	valac overestimate.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
 
 
-all: listbox.vala easy.vala
-	valac easy.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
+#all: listbox.vala easy.vala
+	#valac easy.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
 
 
 
