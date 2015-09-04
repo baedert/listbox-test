@@ -4,4 +4,6 @@ fm
 fc
 revealer
 no-scroll
+easy
+overestimate
 *.c
