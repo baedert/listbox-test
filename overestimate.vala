@@ -9,7 +9,7 @@
 
 class Data : GLib.Object {
 	public string str;
-	public uint index;
+	public uint   index;
 }
 
 class Row : Gtk.ListBoxRow {
@@ -112,6 +112,7 @@ void main (string[] args)
 
 	window.add (box);
 	window.resize (400, 300);
+	window.delete_event.connect (() => { Gtk.main_quit (); return true;});
 	window.show_all ();
 	Gtk.main ();
 }
