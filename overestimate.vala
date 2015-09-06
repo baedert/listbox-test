@@ -49,7 +49,7 @@ void main (string[] args)
 
 
 
-	for (uint i = 0; i < 4; i ++) {
+	for (uint i = 0; i < 400; i ++) {
 		var d = new Data ();
 		d.str = "Foobar %u".printf (i);
 		d.index = i;

@@ -2,7 +2,6 @@
 
 /*
 	 == TODO LIST ==
-	 - Optimize stuff
 	 - Fix all XXX
 	 - Port to C
 	 - kinetic scrolling doesn't seem to work
@@ -306,7 +305,6 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 	public override void remove (Gtk.Widget w) {
 		assert (w.get_parent () == this);
-		// XXX unref all widgets manually in the destructor
 	}
 
 	public override GLib.Type child_type () {
@@ -780,7 +778,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		  return;
 
 		message ("ensure_visible_widgets(%d): value = %f",
-		         counter++, this._vadjustment != null ? this._vadjustment.value : -1);
+		         counter++, this._vadjustment != null ? this._vadjustment.value : -1.0);
 
 
 		int bin_height;
@@ -815,17 +813,20 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			message ("estimated top widget index: %u (%u / %u)", top_widget_index,
 			         (uint)this._vadjustment.value, estimated_widget_height);
+			message ("Model size: %u", this.model.get_n_items ());
 
 			if (top_widget_index > this.model.get_n_items ()) {
 				message ("OVERESTIMATE");
 				/* Push the bin_window to the very bottom, remove all widgets. */
 				this.model_to = this.model.get_n_items ();
 				this.model_from = model_to;
-				this.bin_y_diff = (uint)this._vadjustment.value +
-				                  (uint)this._vadjustment.page_size;
+				this.bin_y_diff = this._vadjustment.value +
+				                  this._vadjustment.page_size;
 			}
 			else {
 				model_from = top_widget_index;
+				this.model_to    = model_from;
+				this.bin_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
 			}
 
 			//if (top_widget_index > (int)this.model.get_n_items ()) {
@@ -866,16 +867,13 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 			/* XXX Rewrite the out-of-sight case. */
 
-			this.bin_y_diff = (top_widget_index * estimated_widget_height);// - top_widget_y_diff;
 
-			this.model_from = top_widget_index;// - 1;
-			this.model_to    = model_from;
 
 
 			/* Extreme case is 0/0 */
 			assert (model_from >= 0);
 			assert (model_from <= model.get_n_items ());
-			assert (model_to < model.get_n_items ());
+			assert (model_to <= model.get_n_items ());
 			/* Let the rest of the code handle refilling our bin_window */
 
 
@@ -917,39 +915,37 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			                            out bottom_part,
 			                            out widget_part);
 
+			message ("bin_y_diff: %f (%u or %f)",
+			         mind (top_part, this._vadjustment.value),
+			         top_part, this._vadjustment.value);
 			this.bin_y_diff = mind (top_part, this._vadjustment.value);
 
 			this.configure_adjustment ();
 
-
-
 			block = true;
 			this.set_value (this.bin_y_diff - bin_y);
-			//message ("New Value: %f", this.bin_y_diff - bin_y);
-			//this._vadjustment.value = this.bin_y_diff + (-bin_y);
 			if (this._vadjustment.value < this.bin_y_diff) {
-				//message ("New value: %f", this.bin_y_diff);
-				//this._vadjustment.value = this.bin_y_diff;
+				message ("Case 1");
 				this.set_value (this.bin_y_diff);
 			}
 
 			block = false;
 
 
-			//bool top = false;
-			//bool bottom = false;
-			//if (this.bin_y () > 0 && this.model_from == 0) {
-				//top = true;
-			//}
+			bool top = false;
+			bool bottom = false;
+			if (this.bin_y () > 0 && this.model_from == 0) {
+				top = true;
+			}
 
-			//if (this.bin_y () + this.bin_window.get_height () < this.get_allocated_height () &&
-				//this.model_to == this.model.get_n_items () - 1) {
+			if (this.bin_y () + this.bin_window.get_height () < this.get_allocated_height () &&
+				this.model_to == this.model.get_n_items () - 1) {
 
-				//bottom = true;
-			//}
+				bottom = true;
+			}
 
-			//if (top)    assert (!bottom);
-			//if (bottom) assert (!top);
+			if (top)    assert (!bottom);
+			if (bottom) assert (!top);
 
 
 			/*
@@ -1000,6 +996,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		assert (model_to <= model.get_n_items ());
 		assert (model_from >= 0);
 		assert (model_from <= model.get_n_items ());
+		assert (bin_y () + bin_height >= 0);
 
 		this.queue_draw ();
 	}
