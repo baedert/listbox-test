@@ -684,8 +684,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
-	private bool insert_top_widgets (ref int bin_height,
-                                     bool end = false)
+	private bool insert_top_widgets (ref int bin_height)
 	{
 		bool added = false;
 		// Insert widgets at top
@@ -745,8 +744,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 
 
 
-	private bool insert_bottom_widgets (ref int bin_height,
-                                        bool    start = false)
+	private bool insert_bottom_widgets (ref int bin_height)
 	{
 		bool added = false;
 		while (bin_y () + bin_height <= this.get_allocated_height () &&
