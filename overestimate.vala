@@ -100,6 +100,13 @@ void main (string[] args)
 	});
 	bbox.add (down_btn);
 
+	var bottom_btn = new Gtk.Button.with_label ("Bottom");
+	bottom_btn.clicked.connect (() => {
+		var vadj = scroller.get_vadjustment ();
+		vadj.value = vadj.upper - vadj.page_size;
+	});
+	bbox.add (bottom_btn);
+
 
 	var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 6);
 	bbox.margin_bottom = 6;
