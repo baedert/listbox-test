@@ -67,11 +67,11 @@ void main (string[] args)
 		assert (item != null);
 		row.assign (data);
 
-		if (data.index < 3)
-		//if (data.index > 0)
-		  row.set_size_request (-1, 100);
-		else
-		  row.set_size_request (-1, -1);
+	//if (data.index < 3)
+	if (data.index > 10)
+		row.set_size_request (-1, 100);
+	else
+		row.set_size_request (-1, -1);
 
 
 
@@ -87,6 +87,12 @@ void main (string[] args)
 	var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
 	bbox.hexpand = true;
 	bbox.get_style_context ().add_class ("linked");
+
+	var top_btn = new Gtk.Button.with_label ("Top");
+	top_btn.clicked.connect (() => {
+		scroller.get_vadjustment ().value = 0.0;
+	});
+	bbox.add (top_btn);
 
 	var up_btn = new Gtk.Button.with_label ("up");
 	up_btn.clicked.connect (() => {

@@ -19,8 +19,17 @@ class TweetModel : GLib.ListModel, GLib.Object {
     int size = this.items.size;
 
     items.clear ();
-    this.items_changed (0, size, 0);
+    this.items_changed (0, size - 1, 0);
   }
+
+  /*
+
+
+		XXX XXX
+		Current problem: Scrolling down, then clearing the model triggers an assertion.
+
+
+	 */
 
   public GLib.Object? get_item (uint position) {
     return items.get ((int)position);
@@ -74,12 +83,12 @@ string random_text () {
 // }}}
 
 class SampleModelItem : GLib.Object {
-  public int num;
+  public uint num;
   public int size;
   public bool checked = false;
   public string text;
 
-  public SampleModelItem (int num, int size) {
+  public SampleModelItem (uint num, int size) {
     this.num = num;
     this.size = size;
     this.text = random_text ();
@@ -92,7 +101,7 @@ class TweetRow : Gtk.ListBoxRow {
   private Gtk.Label text_label;
   [GtkChild]
   private Gtk.Label time_delta_label;
-  public int num = 0;
+  public uint num = 0;
 
   public TweetRow () {
     //text_label.label = "asdkfjsdahfsdakjf sdafhsda fgsdag fhgsajkfhsga dhfsga df <a href=\"foobar\">hihi</a>
@@ -248,11 +257,11 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void add_middle_button_clicked_cb () {
-    int index = this.list_box.model_from +
+    uint index = this.list_box.model_from +
       (this.list_box.model_to - this.list_box.model_from) / 2;
 
     var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
-    this.model.insert (index, item);
+    this.model.insert ((int)index, item);
   }
 
   [GtkCallback]
