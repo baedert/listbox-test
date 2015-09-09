@@ -22,15 +22,6 @@ class TweetModel : GLib.ListModel, GLib.Object {
     this.items_changed (0, size - 1, 0);
   }
 
-  /*
-
-
-		XXX XXX
-		Current problem: Scrolling down, then clearing the model triggers an assertion.
-
-
-	 */
-
   public GLib.Object? get_item (uint position) {
     return items.get ((int)position);
   }
@@ -266,7 +257,6 @@ class DemoWindow : Gtk.Window {
 
   [GtkCallback]
   private void add_end_button_clicked_cb () {
-    // XXX This fails if the last part of the list ist visible
     int index = (int)this.model.get_n_items ();
     var item = new SampleModelItem (index, 20  + (int)(GLib.Random.next_int () % 100));
     this.model.insert (index, item);
