@@ -6,4 +6,5 @@ revealer
 no-scroll
 easy
 overestimate
+gtk-demo
 *.c

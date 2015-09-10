@@ -3,5 +3,7 @@
     <file compressed="true" preprocess="xml-stripblanks">demo.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">tweet-row.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk-demo.ui</file>
+    <file>messages.txt</file>
   </gresource>
 </gresources>
