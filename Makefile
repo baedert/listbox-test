@@ -14,8 +14,8 @@
 	#valac fc.vala listbox.vala --pkg gtk+-3.0 --pkg pango --pkg gee-0.8 --target-glib=2.38 -g -X -w --vapidir=.
 
 
-all: listbox.vala gtk-demo.vala resources.c
-	valac gtk-demo.vala listbox.vala resources.c --pkg glib-2.0 --pkg gtk+-3.0 --pkg gee-0.8 --gresources=resources.xml --target-glib=2.38 -g -X -w
+#all: listbox.vala gtk-demo.vala resources.c
+	#valac gtk-demo.vala listbox.vala resources.c --pkg glib-2.0 --pkg gtk+-3.0 --pkg gee-0.8 --gresources=resources.xml --target-glib=2.38 -g -X -w
 
 
 
@@ -31,8 +31,8 @@ all: listbox.vala gtk-demo.vala resources.c
 	#valac overestimate.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
 
 
-#all: listbox.vala easy.vala
-	#valac easy.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w
+all: listbox.vala easy.vala
+	valac easy.vala listbox.vala --pkg gtk+-3.0 --pkg gee-0.8 --target-glib=2.38 -g -X -w --save-temps
 
 
 

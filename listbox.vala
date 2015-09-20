@@ -29,6 +29,28 @@ inline double mind (double a, double b)
 	return a < b ? a : b;
 }
 
+public class Bench {
+	public string name;
+	public GLib.DateTime first;
+
+	public void stop () {
+		var ts = new GLib.DateTime.now_local ().difference (first);
+		message ("%s took %'ld microseconds", this.name, ts);
+	}
+
+
+	public static Bench start (string name) {
+		var b = new Bench ();
+
+		b.name = name;
+		b.first = new GLib.DateTime.now_local ();
+		return b;
+	}
+}
+
+
+
+
 
 delegate Gtk.Widget WidgetFillFunc (GLib.Object item,
                                     Gtk.Widget? old_widget);
@@ -796,6 +818,8 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		if (block)
 		  return;
 
+		var bench = Bench.start ("ensure_visible_widgets");
+
 		//double value_p = this._vadjustment.value /
 						 //(this._vadjustment.upper - this._vadjustment.page_size);
 
@@ -1012,6 +1036,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		message ("New estimated height: %'u", this.estimated_list_height ());
 		this.queue_draw ();
 		message ("==================");
+		bench.stop ();
 	}
 
 }

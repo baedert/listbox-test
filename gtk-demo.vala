@@ -101,50 +101,6 @@ class GtkMessageRow : Gtk.ListBoxRow
 
 	}
 
-
-
-  private int64 start_time;
-  private int64 end_time;
-
-  private double ease_out_cubic (double t) {
-    double p = t - 1;
-    return p * p * p +1;
-  }
-
-  private bool anim_tick (Gtk.Widget widget, Gdk.FrameClock frame_clock) {
-    int64 now = frame_clock.get_frame_time ();
-
-    if (now > end_time) {
-      this.opacity = 1.0;
-      return false;
-    }
-
-    double t = (now - start_time) / (double)(end_time - start_time);
-
-    t = ease_out_cubic (t);
-
-    this.opacity = t;
-
-    return true;
-  }
-
-  public void fade_in () {
-    if (this.get_realized ()) {
-      this.show ();
-      return;
-    }
-
-    ulong realize_id = 0;
-    realize_id = this.realize.connect (() => {
-      this.start_time = this.get_frame_clock ().get_frame_time ();
-      this.end_time = start_time + (TRANSITION_DURATION * 1000);
-      this.add_tick_callback (anim_tick);
-      this.disconnect (realize_id);
-    });
-
-    this.show ();
-  }
-
 }
 
 
@@ -173,7 +129,6 @@ void main (string[] args)
 
 		row.assign (msg);
 
-		row.fade_in ();
 		return row;
 	};
 
@@ -182,6 +137,16 @@ void main (string[] args)
 	scroller.add (list);
 
 	box.add (scroller);
+
+
+	/*
+	   XXX
+
+	   Scrolling with the fine mode is broken!
+
+	   XXX
+
+	   */
 
 
 	var bbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
@@ -217,9 +182,9 @@ void main (string[] args)
 	int i = 0;
 	animate_scroll.clicked.connect (() => {
 		var adjustment = scroller.get_vadjustment ();
-		GLib.Timeout.add (1000, () => {
-			adjustment.value += adjustment.page_size;
-			//adjustment.value += 15.0;
+		GLib.Timeout.add (10, () => {
+			//adjustment.value += adjustment.page_size * 2;
+			adjustment.value += 15.0;
 
 			i ++;
 			message ("Iteration: %d", i);
@@ -237,7 +202,7 @@ void main (string[] args)
 
 	window.add (box);
 
-
+	window.delete_event.connect (() => { Gtk.main_quit (); return true;});
 	window.resize (400, 600);
 	window.show_all ();
 	Gtk.main ();

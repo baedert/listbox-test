@@ -67,7 +67,7 @@ class Model : GLib.ListModel, GLib.Object
 
 void main (string[] args)
 {
-	int N = 10000000;
+	int N = 30;
 	Gtk.init (ref args);
 	var window = new Gtk.Window ();
 	var list = new ModelListBox ();
@@ -104,6 +104,7 @@ void main (string[] args)
 	};
 
 	scroller.add (list);
+	scroller.margin_bottom = 40;
 	window.add (scroller);
 
 	window.resize (400, 400);
