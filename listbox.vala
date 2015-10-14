@@ -385,6 +385,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 	public override void size_allocate (Gtk.Allocation allocation)
 	{
 		bool height_changed = allocation.height != this.get_allocated_height ();
+		bool width_changed = allocation.width != this.get_allocated_width ();
 		this.set_allocation (allocation);
 		position_children ();
 
@@ -398,13 +399,17 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			this.update_bin_window ();
 		}
 
-		if (!bin_window_full () && height_changed) {
+
+
+		if (this._vadjustment != null && height_changed || width_changed) {
+			configure_adjustment ();
+		}
+
+		if (height_changed || width_changed) {
 			message ("from size-allocate");
 			this.ensure_visible_widgets ();
 		}
 
-		if (this._vadjustment != null)
-			configure_adjustment ();
 	}
 
 	public override void realize ()
@@ -994,6 +999,7 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 		//message ("bin_y: %d", bin_y ());
 		//if (widgets_changed && this._vadjustment != null)
 			//this.configure_adjustment ();
+		this.configure_adjustment ();
 
 		/* We always need to change this, since the value always changed. */
 		this.update_bin_window (bin_height);

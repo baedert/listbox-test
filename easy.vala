@@ -1,6 +1,7 @@
 // vim: set noexpandtab tabstop=4 shiftwidth=4 softtabstop=4:
 
 
+const int N = 30000000;
 
 class Data : GLib.Object
 {
@@ -67,7 +68,6 @@ class Model : GLib.ListModel, GLib.Object
 
 void main (string[] args)
 {
-	int N = 30;
 	Gtk.init (ref args);
 	var window = new Gtk.Window ();
 	var list = new ModelListBox ();
