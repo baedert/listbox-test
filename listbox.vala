@@ -856,17 +856,16 @@ class ModelListBox : Gtk.Container, Gtk.Scrollable {
 			bin_height = 0;
 
 
-			double percentage = this._vadjustment.value /
-			                    (this._vadjustment.upper - this._vadjustment.page_size);
+			double percentage = this._vadjustment.value / this._vadjustment.upper;
 			message ("Used value: %'f, from %'f (%'f%%)",
-			         this._vadjustment.value, this._vadjustment.upper - this._vadjustment.page_size,
+			         this._vadjustment.value, this._vadjustment.upper,
 			         percentage * 100);
 
 			assert (percentage >= 0);
 			assert (percentage <= 1.0);
-			//uint top_widget_index = (uint)this._vadjustment.value / estimated_widget_height;
 			uint top_widget_index = (uint)(this.model.get_n_items () * percentage);
 			assert (top_widget_index >= 0);
+			assert (top_widget_index <= this.model.get_n_items () - 1);
 
 			message ("estimated top widget index: %'u", top_widget_index);
 			message ("estimated widget height: %'d", estimated_widget_height);
